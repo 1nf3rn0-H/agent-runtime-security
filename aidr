@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+"""Repository entry point for the AiDR control-plane CLI."""
+
+from pathlib import Path
+import sys
+
+
+CORE = Path(__file__).resolve().parent / ".aidr"
+sys.path.insert(0, str(CORE))
+
+from cli import main  # noqa: E402
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

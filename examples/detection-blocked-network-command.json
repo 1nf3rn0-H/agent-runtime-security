@@ -1,0 +1,138 @@
+{
+  "schema_version": "1.2.0",
+  "event_id": "det_01993a1f-4300-7000-8000-000000000001",
+  "event_type": "detection",
+  "emitted_at": "2026-09-11T10:15:30.125Z",
+  "producer": {
+    "name": "aidr",
+    "version": "0.1.0",
+    "component": "policy_engine"
+  },
+  "detection": {
+    "rule": {
+      "id": "aidr.network.blocked_domain",
+      "version": "1",
+      "ruleset": "local-default"
+    },
+    "title": "Agent attempted network access to a blocked domain",
+    "description": "A proposed shell command targeted a domain prohibited by local policy.",
+    "category": "network.prohibited_destination",
+    "severity": "high",
+    "confidence": 100,
+    "tags": ["network", "pre_execution"]
+  },
+  "observed_window": {
+    "first_observed_at": "2026-09-11T10:15:30.124Z",
+    "last_observed_at": "2026-09-11T10:15:30.124Z",
+    "observation_count": 1
+  },
+  "correlation": {
+    "correlation_id": "cor_01993a1f-4300-7000-8000-000000000001",
+    "trace_ids": ["trc_7d3ab4aeef97691f4edf50fb444655bf"],
+    "action_ids": ["act_54cc03162a3f73a103b13e71b9efe047"],
+    "request_fingerprints": ["req_131a67aa6efb0b317c2ba0e25490f419"],
+    "sessions": [
+      {
+        "provider": "codex",
+        "session_id": "01a00186-85e8-7222-8c9d-c512bae6d776"
+      }
+    ],
+    "initiating_entity_id": "agent:root"
+  },
+  "entities": [
+    {
+      "id": "agent:root",
+      "type": "agent",
+      "attributes": {
+        "agent.provider": "codex",
+        "agent.type": "root"
+      }
+    },
+    {
+      "id": "tool_call:call_8bd540e1",
+      "type": "tool_call",
+      "attributes": {
+        "tool.name": "Bash",
+        "tool.phase": "pre_execution"
+      }
+    },
+    {
+      "id": "network_endpoint:evil.com",
+      "type": "network_endpoint",
+      "attributes": {
+        "network.address": "evil.com",
+        "network.address_type": "domain"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "source_entity_id": "agent:root",
+      "relationship": "initiated",
+      "target_entity_id": "tool_call:call_8bd540e1",
+      "observed_at": "2026-09-11T10:15:30.124Z"
+    },
+    {
+      "source_entity_id": "tool_call:call_8bd540e1",
+      "relationship": "targeted",
+      "target_entity_id": "network_endpoint:evil.com",
+      "observed_at": "2026-09-11T10:15:30.124Z"
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "evd_01993a1f-4300-7000-8000-000000000001",
+      "observed_at": "2026-09-11T10:15:30.124Z",
+      "action_type": "agent.tool.request",
+      "phase": "pre_execution",
+      "role": "trigger",
+      "source_entity_id": "tool_call:call_8bd540e1",
+      "target_entity_ids": ["network_endpoint:evil.com"],
+      "summary": "Bash requested ping to the policy-blocked domain evil.com.",
+      "attributes": {
+        "process.command_line": "ping evil.com",
+        "process.executable": "ping"
+      }
+    }
+  ],
+  "evidence_chains": [
+    {
+      "chain_id": "chn_01993a1f-4300-7000-8000-000000000001",
+      "type": "causal",
+      "summary": "The root agent requested Bash, which targeted a blocked domain before process execution.",
+      "steps": [
+        {
+          "sequence": 1,
+          "evidence_id": "evd_01993a1f-4300-7000-8000-000000000001",
+          "source_entity_id": "agent:root",
+          "relationship": "initiated",
+          "target_entity_id": "tool_call:call_8bd540e1"
+        },
+        {
+          "sequence": 2,
+          "evidence_id": "evd_01993a1f-4300-7000-8000-000000000001",
+          "source_entity_id": "tool_call:call_8bd540e1",
+          "relationship": "targeted",
+          "target_entity_id": "network_endpoint:evil.com"
+        }
+      ]
+    }
+  ],
+  "response": {
+    "action": "blocked",
+    "enforcement_point": "pre_execution",
+    "reason": "Blocked by AiDR before the Bash tool reached the shell.",
+    "policy_latency_us": 479
+  },
+  "data_handling": {
+    "classification": "internal",
+    "command_content": "redacted",
+    "secret_scan": "passed"
+  },
+  "extensions": {
+    "com.openai.codex": {
+      "hook_event_name": "PreToolUse",
+      "permission_mode": "default"
+    }
+  }
+}

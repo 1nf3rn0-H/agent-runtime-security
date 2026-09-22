@@ -1,0 +1,199 @@
+{
+  "schema_version": "1.2.0",
+  "event_id": "det_01993a20-1200-7000-8000-000000000002",
+  "event_type": "detection",
+  "emitted_at": "2026-09-11T10:16:10.500Z",
+  "producer": {
+    "name": "aidr",
+    "version": "0.1.0",
+    "component": "correlator"
+  },
+  "detection": {
+    "rule": {
+      "id": "aidr.execution.suspicious_child_network_chain",
+      "version": "1"
+    },
+    "title": "Agent tool spawned a child process that contacted a suspicious endpoint",
+    "category": "execution.correlated_process_chain",
+    "severity": "high",
+    "confidence": 92,
+    "tags": ["process_chain", "network"]
+  },
+  "observed_window": {
+    "first_observed_at": "2026-09-11T10:16:10.100Z",
+    "last_observed_at": "2026-09-11T10:16:10.450Z",
+    "observation_count": 4
+  },
+  "correlation": {
+    "correlation_id": "cor_01993a20-1200-7000-8000-000000000002",
+    "trace_ids": ["trc_d09ea7b635b045a28d69d782f23a1432"],
+    "action_ids": ["act_056b318daeb23d55c0021780c33e16e3"],
+    "request_fingerprints": ["req_21804727e8b7d4f8213bd63bb1d48a0b"],
+    "sessions": [
+      {
+        "provider": "codex",
+        "session_id": "session-example-2"
+      }
+    ],
+    "initiating_entity_id": "agent:subagent-a"
+  },
+  "entities": [
+    {
+      "id": "agent:subagent-a",
+      "type": "agent",
+      "attributes": {
+        "agent.provider": "codex",
+        "agent.type": "worker"
+      }
+    },
+    {
+      "id": "tool_call:call_c125",
+      "type": "tool_call",
+      "attributes": {
+        "tool.name": "Bash"
+      }
+    },
+    {
+      "id": "process:501-9812-1789121770100000000",
+      "type": "process",
+      "attributes": {
+        "process.pid": 9812,
+        "process.executable": "/bin/sh"
+      }
+    },
+    {
+      "id": "process:501-9813-1789121770200000000",
+      "type": "process",
+      "attributes": {
+        "process.pid": 9813,
+        "process.executable": "/usr/bin/curl"
+      }
+    },
+    {
+      "id": "network_endpoint:suspicious.example-443",
+      "type": "network_endpoint",
+      "attributes": {
+        "network.address": "suspicious.example",
+        "network.port": 443,
+        "network.transport": "tcp"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "source_entity_id": "agent:subagent-a",
+      "relationship": "initiated",
+      "target_entity_id": "tool_call:call_c125"
+    },
+    {
+      "source_entity_id": "tool_call:call_c125",
+      "relationship": "spawned",
+      "target_entity_id": "process:501-9812-1789121770100000000"
+    },
+    {
+      "source_entity_id": "process:501-9812-1789121770100000000",
+      "relationship": "parent_of",
+      "target_entity_id": "process:501-9813-1789121770200000000"
+    },
+    {
+      "source_entity_id": "process:501-9813-1789121770200000000",
+      "relationship": "connected_to",
+      "target_entity_id": "network_endpoint:suspicious.example-443"
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "evd_01993a20-1200-7000-8000-000000000001",
+      "observed_at": "2026-09-11T10:16:10.100Z",
+      "action_type": "agent.tool.request",
+      "phase": "pre_execution",
+      "role": "context",
+      "source_entity_id": "agent:subagent-a",
+      "target_entity_ids": ["tool_call:call_c125"],
+      "summary": "The subagent requested a shell action.",
+      "attributes": {}
+    },
+    {
+      "evidence_id": "evd_01993a20-1200-7000-8000-000000000002",
+      "observed_at": "2026-09-11T10:16:10.150Z",
+      "action_type": "process.start",
+      "phase": "runtime",
+      "role": "supporting",
+      "source_entity_id": "tool_call:call_c125",
+      "target_entity_ids": ["process:501-9812-1789121770100000000"],
+      "summary": "The Bash tool started the traced shell process.",
+      "attributes": {}
+    },
+    {
+      "evidence_id": "evd_01993a20-1200-7000-8000-000000000003",
+      "observed_at": "2026-09-11T10:16:10.200Z",
+      "action_type": "process.start",
+      "phase": "runtime",
+      "role": "supporting",
+      "source_entity_id": "process:501-9812-1789121770100000000",
+      "target_entity_ids": ["process:501-9813-1789121770200000000"],
+      "summary": "The traced shell spawned curl.",
+      "attributes": {}
+    },
+    {
+      "evidence_id": "evd_01993a20-1200-7000-8000-000000000004",
+      "observed_at": "2026-09-11T10:16:10.450Z",
+      "action_type": "network.connect",
+      "phase": "runtime",
+      "role": "trigger",
+      "source_entity_id": "process:501-9813-1789121770200000000",
+      "target_entity_ids": ["network_endpoint:suspicious.example-443"],
+      "summary": "The descendant process connected to a suspicious endpoint.",
+      "attributes": {
+        "network.bytes_sent": 384
+      }
+    }
+  ],
+  "evidence_chains": [
+    {
+      "chain_id": "chn_01993a20-1200-7000-8000-000000000001",
+      "type": "causal",
+      "summary": "A subagent initiated Bash; the resulting shell spawned curl, which connected to the suspicious endpoint.",
+      "steps": [
+        {
+          "sequence": 1,
+          "evidence_id": "evd_01993a20-1200-7000-8000-000000000001",
+          "source_entity_id": "agent:subagent-a",
+          "relationship": "initiated",
+          "target_entity_id": "tool_call:call_c125"
+        },
+        {
+          "sequence": 2,
+          "evidence_id": "evd_01993a20-1200-7000-8000-000000000002",
+          "source_entity_id": "tool_call:call_c125",
+          "relationship": "spawned",
+          "target_entity_id": "process:501-9812-1789121770100000000"
+        },
+        {
+          "sequence": 3,
+          "evidence_id": "evd_01993a20-1200-7000-8000-000000000003",
+          "source_entity_id": "process:501-9812-1789121770100000000",
+          "relationship": "parent_of",
+          "target_entity_id": "process:501-9813-1789121770200000000"
+        },
+        {
+          "sequence": 4,
+          "evidence_id": "evd_01993a20-1200-7000-8000-000000000004",
+          "source_entity_id": "process:501-9813-1789121770200000000",
+          "relationship": "connected_to",
+          "target_entity_id": "network_endpoint:suspicious.example-443"
+        }
+      ]
+    }
+  ],
+  "response": {
+    "action": "observed",
+    "enforcement_point": "runtime",
+    "reason": "The process sensor observed the completed connection; no runtime termination control was active."
+  },
+  "data_handling": {
+    "classification": "internal",
+    "command_content": "omitted",
+    "secret_scan": "not_run"
+  }
+}

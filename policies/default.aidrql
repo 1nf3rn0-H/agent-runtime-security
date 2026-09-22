@@ -1,0 +1,37 @@
+# AiDR Query Language v1
+DEFAULT ALLOW
+
+RULE block-ping-evil-domain
+TITLE "Network probing of a prohibited domain"
+DESCRIPTION "Prevent an agent from invoking ping against an explicitly prohibited domain."
+SEVERITY high
+CATEGORY network.prohibited_destination
+VERSION "1"
+WHEN tool.name IS "Bash"
+AND process.executable IS ["ping", "ping6"]
+AND network.destinations MATCHES "^evil\\.com$"
+THEN DENY "Blocked by AiDR: ping destination matched a prohibited-domain policy."
+END
+
+RULE block-virustotal-malicious-destination
+TITLE "VirusTotal malicious network destination"
+DESCRIPTION "Look up regex-selected network destinations and deny those classified as malicious by VirusTotal."
+SEVERITY high
+CATEGORY network.threat_intelligence
+VERSION "1"
+WHEN tool.name IS "Bash"
+AND process.executable IS ["curl", "ping", "ping6", "wget"]
+AND network.destinations MATCHES "^evil\\.com$"
+AND threat.verdicts IS "malicious"
+THEN DENY "Blocked by AiDR: VirusTotal classified the destination as malicious."
+END
+
+RULE audit-all-shell-commands
+TITLE "Audit shell command"
+DESCRIPTION "Record every shell command without changing its decision."
+SEVERITY informational
+CATEGORY execution.shell_command
+VERSION "1"
+WHEN tool.name IS "Bash"
+THEN AUDIT
+END

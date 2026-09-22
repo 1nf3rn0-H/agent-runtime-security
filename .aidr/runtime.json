@@ -1,0 +1,24 @@
+{
+  "trace": {
+    "state_dir": ".aidr/state",
+    "inject_shell_environment": true
+  },
+  "telemetry": {
+    "path": ".aidr/events.jsonl",
+    "include_raw_command": true
+  },
+  "detections": {
+    "path": ".aidr/detections.jsonl",
+    "emit_actions": ["deny"]
+  },
+  "threat_intelligence": {
+    "enabled": false,
+    "provider": "virustotal",
+    "api_key_env": "VIRUSTOTAL_API_KEY",
+    "timeout_ms": 1500,
+    "failure_mode": "open",
+    "malicious_threshold": 1,
+    "suspicious_threshold": 1,
+    "max_lookups": 4
+  }
+}

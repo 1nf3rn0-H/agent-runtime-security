@@ -1,0 +1,13 @@
+{
+  "session_id": "demo-session",
+  "turn_id": "demo-turn",
+  "tool_use_id": "demo-tool-call",
+  "cwd": "/Users/harshmehta/Desktop/Projects/AiDR",
+  "hook_event_name": "PreToolUse",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "ping evil.com"
+  },
+  "model": "gpt-5.6-sol",
+  "permission_mode": "default"
+}

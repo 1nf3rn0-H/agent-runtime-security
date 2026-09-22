@@ -1,0 +1,80 @@
+{
+  "description": "AiDR policy and correlation hooks for every supported local tool in this workspace.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 /Users/harshmehta/Desktop/Projects/AiDR/.aidr/codex_hook.py --rules /Users/harshmehta/Desktop/Projects/AiDR/.aidr/rules.json",
+            "timeout": 2,
+            "statusMessage": "AiDR is starting session tracing"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 /Users/harshmehta/Desktop/Projects/AiDR/.aidr/codex_hook.py --rules /Users/harshmehta/Desktop/Projects/AiDR/.aidr/rules.json",
+            "timeout": 2,
+            "statusMessage": "AiDR is linking the subagent trace"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 /Users/harshmehta/Desktop/Projects/AiDR/.aidr/codex_hook.py --rules /Users/harshmehta/Desktop/Projects/AiDR/.aidr/rules.json",
+            "timeout": 2,
+            "statusMessage": "AiDR is checking the pending tool action"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 /Users/harshmehta/Desktop/Projects/AiDR/.aidr/codex_hook.py --rules /Users/harshmehta/Desktop/Projects/AiDR/.aidr/rules.json",
+            "timeout": 2,
+            "statusMessage": "AiDR is checking the permission request"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 /Users/harshmehta/Desktop/Projects/AiDR/.aidr/codex_hook.py --rules /Users/harshmehta/Desktop/Projects/AiDR/.aidr/rules.json",
+            "timeout": 2,
+            "statusMessage": "AiDR is recording tool completion"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 /Users/harshmehta/Desktop/Projects/AiDR/.aidr/codex_hook.py --rules /Users/harshmehta/Desktop/Projects/AiDR/.aidr/rules.json",
+            "timeout": 2,
+            "statusMessage": "AiDR is finalizing session telemetry"
+          }
+        ]
+      }
+    ]
+  }
+}

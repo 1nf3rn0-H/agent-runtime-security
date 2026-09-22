@@ -1,0 +1,256 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aidr.dev/schemas/runtime-policy/1.4.0",
+  "title": "AiDR runtime policy IR",
+  "description": "Validated, generated policy consumed by AiDR harness adapters. This is not an authoring format.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["policy_ir_version", "default_action", "compiler", "rules"],
+  "properties": {
+    "policy_ir_version": {"const": "1.4.0"},
+    "default_action": {"enum": ["allow", "deny"]},
+    "compiler": {"$ref": "#/$defs/compiler"},
+    "trace": {"$ref": "#/$defs/trace"},
+    "telemetry": {"$ref": "#/$defs/telemetry"},
+    "detections": {"$ref": "#/$defs/detections"},
+    "threat_intelligence": {"$ref": "#/$defs/threatIntelligence"},
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1000,
+      "items": {"$ref": "#/$defs/rule"}
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "stringList": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": {"$ref": "#/$defs/nonEmptyString"}
+    },
+    "compiler": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["language", "source"],
+      "properties": {
+        "language": {"type": "string", "minLength": 1, "maxLength": 128},
+        "source": {"type": "string", "minLength": 1, "maxLength": 4096}
+      }
+    },
+    "trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "state_dir": {"type": "string", "minLength": 1, "maxLength": 4096},
+        "inject_shell_environment": {"type": "boolean"}
+      }
+    },
+    "telemetry": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": {"type": "string", "minLength": 1, "maxLength": 4096},
+        "include_raw_command": {"type": "boolean"}
+      }
+    },
+    "detections": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": {"type": "string", "minLength": 1, "maxLength": 4096},
+        "emit_actions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": {"const": "deny"}
+        }
+      }
+    },
+    "threatIntelligence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "provider": {"const": "virustotal"},
+        "api_key_env": {"type": "string", "pattern": "^[A-Z_][A-Z0-9_]*$", "maxLength": 128},
+        "timeout_ms": {"type": "integer", "minimum": 100, "maximum": 10000},
+        "failure_mode": {"enum": ["open", "closed"]},
+        "malicious_threshold": {"type": "integer", "minimum": 1, "maximum": 100},
+        "suspicious_threshold": {"type": "integer", "minimum": 1, "maximum": 100},
+        "max_lookups": {"type": "integer", "minimum": 1, "maximum": 16}
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "action", "match"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "title": {"$ref": "#/$defs/nonEmptyString"},
+        "description": {"$ref": "#/$defs/nonEmptyString"},
+        "severity": {
+          "enum": ["informational", "low", "medium", "high", "critical"]
+        },
+        "category": {
+          "type": "string",
+          "maxLength": 256,
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"
+        },
+        "version": {"$ref": "#/$defs/nonEmptyString"},
+        "action": {"enum": ["allow", "deny", "audit"]},
+        "message": {"$ref": "#/$defs/nonEmptyString"},
+        "match": {"$ref": "#/$defs/match"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"action": {"const": "deny"}}, "required": ["action"]},
+          "then": {"required": ["message"]}
+        }
+      ]
+    },
+    "match": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "case_sensitive": {"type": "boolean"},
+        "conditions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {"$ref": "#/$defs/condition"}
+        },
+        "tool_names": {"$ref": "#/$defs/stringList"},
+        "command_regex": {"$ref": "#/$defs/nonEmptyString"},
+        "invocation": {"$ref": "#/$defs/invocation"}
+      },
+      "anyOf": [
+        {"required": ["conditions"]},
+        {"required": ["tool_names"]},
+        {"required": ["command_regex"]},
+        {"required": ["invocation"]}
+      ]
+    },
+    "condition": {
+      "oneOf": [
+        {"$ref": "#/$defs/unaryCondition"},
+        {"$ref": "#/$defs/stringCondition"},
+        {"$ref": "#/$defs/listCondition"}
+      ]
+    },
+    "conditionBase": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string",
+          "maxLength": 128,
+          "anyOf": [
+            {
+              "enum": [
+                "tool.name",
+                "tool.family",
+                "action.type",
+                "session.cwd",
+                "agent.id",
+                "process.executable",
+                "process.args",
+                "process.dispatch_chain",
+                "network.destinations",
+                "network.urls",
+                "file.paths",
+                "git.operations",
+                "git.repositories",
+                "package.operations",
+                "package.names",
+                "tool.targets",
+                "tool.network.destinations",
+                "threat.indicator_ids",
+                "threat.verdicts",
+                "threat.labels",
+                "threat.sources",
+                "threat.matched_targets",
+                "tool.threat.indicator_ids",
+                "tool.threat.verdicts",
+                "tool.threat.labels",
+                "tool.threat.sources",
+                "tool.threat.matched_targets",
+                "action.command"
+              ]
+            },
+            {"pattern": "^tool\\.input\\.[A-Za-z_][A-Za-z0-9_]*$"}
+          ]
+        },
+        "operator": {"type": "string"}
+      }
+    },
+    "unaryCondition": {
+      "allOf": [
+        {"$ref": "#/$defs/conditionBase"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["field", "operator"],
+          "properties": {
+            "field": {},
+            "operator": {"enum": ["EXISTS", "NOT_EXISTS"]}
+          }
+        }
+      ]
+    },
+    "stringCondition": {
+      "allOf": [
+        {"$ref": "#/$defs/conditionBase"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["field", "operator", "value"],
+          "properties": {
+            "field": {},
+            "operator": {
+              "enum": ["==", "!=", "CONTAINS", "STARTS_WITH", "ENDS_WITH", "MATCHES", "ANY_MATCHES"]
+            },
+            "value": {"$ref": "#/$defs/nonEmptyString"}
+          }
+        }
+      ]
+    },
+    "listCondition": {
+      "allOf": [
+        {"$ref": "#/$defs/conditionBase"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["field", "operator", "value"],
+          "properties": {
+            "field": {},
+            "operator": {"enum": ["IN", "NOT_IN", "HAS_ANY", "HAS_ALL", "HAS_NONE"]},
+            "value": {"$ref": "#/$defs/stringList"}
+          }
+        }
+      ]
+    },
+    "invocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "executables": {"$ref": "#/$defs/stringList"},
+        "args_any": {"$ref": "#/$defs/stringList"},
+        "args_all": {"$ref": "#/$defs/stringList"},
+        "case_sensitive": {"type": "boolean"}
+      },
+      "anyOf": [
+        {"required": ["executables"]},
+        {"required": ["args_any"]},
+        {"required": ["args_all"]}
+      ]
+    }
+  }
+}

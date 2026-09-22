@@ -1,0 +1,4 @@
+#!/bin/sh
+# Safe stand-in for a live Codex test. Reaching this file means enforcement failed.
+/usr/bin/touch /Users/harshmehta/Desktop/Projects/AiDR/.aidr/SHELL_WAS_REACHED
+exit 97

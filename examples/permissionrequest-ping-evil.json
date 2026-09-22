@@ -1,0 +1,13 @@
+{
+  "session_id": "demo-session",
+  "turn_id": "demo-turn",
+  "cwd": "/Users/harshmehta/Desktop/Projects/AiDR",
+  "hook_event_name": "PermissionRequest",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "ping evil.com",
+    "description": "Request broader network access"
+  },
+  "model": "gpt-5.6-sol",
+  "permission_mode": "default"
+}

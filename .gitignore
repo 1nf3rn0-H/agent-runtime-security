@@ -1,0 +1,9 @@
+.aidr/events.jsonl
+.aidr/SHELL_WAS_REACHED
+.aidr/TRACE_CHAIN_CAPTURE.json
+.aidr/SUBAGENT_TRACE_CAPTURE.json
+.aidr/state/
+.aidr/detections.jsonl
+.aidr/*.lkg
+__pycache__/
+*.pyc

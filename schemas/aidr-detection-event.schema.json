@@ -1,0 +1,407 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aidr.dev/schemas/detection-event/1.2.0",
+  "title": "AiDR Detection Event",
+  "description": "The durable AiDR event emitted when correlated internal observations match a detection rule.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "event_type",
+    "emitted_at",
+    "producer",
+    "detection",
+    "observed_window",
+    "correlation",
+    "entities",
+    "relationships",
+    "evidence",
+    "response",
+    "data_handling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.2.0"
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^det_[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$"
+    },
+    "event_type": {
+      "const": "detection"
+    },
+    "emitted_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "component"],
+      "properties": {
+        "name": {"const": "aidr"},
+        "version": {"type": "string", "minLength": 1, "maxLength": 64},
+        "component": {
+          "type": "string",
+          "enum": ["hook", "correlator", "process_sensor", "policy_engine"]
+        }
+      }
+    },
+    "detection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rule", "title", "category", "severity", "confidence"],
+      "properties": {
+        "rule": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "version"],
+          "properties": {
+            "id": {"$ref": "#/$defs/namespacedIdentifier"},
+            "version": {"type": "string", "minLength": 1, "maxLength": 64},
+            "ruleset": {"type": "string", "minLength": 1, "maxLength": 128}
+          }
+        },
+        "title": {"type": "string", "minLength": 1, "maxLength": 256},
+        "description": {"type": "string", "maxLength": 4096},
+        "category": {"$ref": "#/$defs/namespacedIdentifier"},
+        "severity": {
+          "type": "string",
+          "enum": ["informational", "low", "medium", "high", "critical"]
+        },
+        "confidence": {"type": "integer", "minimum": 0, "maximum": 100},
+        "tags": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1, "maxLength": 128},
+          "uniqueItems": true,
+          "maxItems": 64
+        }
+      }
+    },
+    "observed_window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["first_observed_at", "last_observed_at", "observation_count"],
+      "properties": {
+        "first_observed_at": {"$ref": "#/$defs/timestamp"},
+        "last_observed_at": {"$ref": "#/$defs/timestamp"},
+        "observation_count": {"type": "integer", "minimum": 1}
+      }
+    },
+    "correlation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["correlation_id", "trace_ids", "sessions", "initiating_entity_id"],
+      "properties": {
+        "correlation_id": {
+          "type": "string",
+          "pattern": "^cor_[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$"
+        },
+        "trace_ids": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1, "maxLength": 128},
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "action_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^act_[a-f0-9]{32}$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "request_fingerprints": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^req_[a-f0-9]{32}$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "sessions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/sessionReference"},
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "initiating_entity_id": {"$ref": "#/$defs/entityIdentifier"},
+        "parent_detection_id": {
+          "type": "string",
+          "pattern": "^det_[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$"
+        }
+      }
+    },
+    "entities": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/entity"},
+      "minItems": 1,
+      "maxItems": 256
+    },
+    "relationships": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/relationship"},
+      "maxItems": 512
+    },
+    "evidence": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/evidence"},
+      "minItems": 1,
+      "maxItems": 256
+    },
+    "evidence_chains": {
+      "type": "array",
+      "description": "Ordered causal paths through evidence and entities. Atomic detections may omit this field.",
+      "items": {"$ref": "#/$defs/evidenceChain"},
+      "minItems": 1,
+      "maxItems": 64
+    },
+    "response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action", "enforcement_point", "reason"],
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": ["blocked", "allowed", "observed", "terminated", "quarantined", "failed"]
+        },
+        "enforcement_point": {
+          "type": "string",
+          "enum": ["pre_execution", "post_execution", "runtime", "none"]
+        },
+        "reason": {"type": "string", "minLength": 1, "maxLength": 2048},
+        "policy_latency_us": {"type": "integer", "minimum": 0}
+      }
+    },
+    "data_handling": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classification", "command_content", "secret_scan"],
+      "properties": {
+        "classification": {
+          "type": "string",
+          "enum": ["internal", "confidential", "restricted"]
+        },
+        "command_content": {
+          "type": "string",
+          "enum": ["full", "redacted", "hashed", "omitted"]
+        },
+        "secret_scan": {
+          "type": "string",
+          "enum": ["passed", "not_run", "findings_redacted"]
+        }
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "description": "Namespaced, non-sensitive producer extensions. Raw vendor payloads are prohibited.",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9_]*)+$"
+      },
+      "additionalProperties": {"type": "object"}
+    }
+  },
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "namespacedIdentifier": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "maxLength": 256
+    },
+    "entityIdentifier": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*:[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$"
+    },
+    "sessionReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "session_id"],
+      "properties": {
+        "provider": {"type": "string", "enum": ["codex", "claude_code", "other"]},
+        "session_id": {"type": "string", "minLength": 1, "maxLength": 256}
+      }
+    },
+    "attributeValue": {
+      "oneOf": [
+        {"type": "string", "maxLength": 8192},
+        {"type": "number"},
+        {"type": "boolean"},
+        {"type": "null"},
+        {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {"type": "string", "maxLength": 8192},
+              {"type": "number"},
+              {"type": "boolean"},
+              {"type": "null"}
+            ]
+          },
+          "maxItems": 256
+        }
+      ]
+    },
+    "attributes": {
+      "type": "object",
+      "propertyNames": {"pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$"},
+      "additionalProperties": {"$ref": "#/$defs/attributeValue"},
+      "maxProperties": 128
+    },
+    "entity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "attributes"],
+      "properties": {
+        "id": {"$ref": "#/$defs/entityIdentifier"},
+        "type": {
+          "type": "string",
+          "enum": [
+            "identity",
+            "agent",
+            "session",
+            "tool_call",
+            "process",
+            "file",
+            "network_endpoint",
+            "repository",
+            "credential",
+            "other"
+          ]
+        },
+        "attributes": {"$ref": "#/$defs/attributes"}
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_entity_id", "relationship", "target_entity_id"],
+      "properties": {
+        "source_entity_id": {"$ref": "#/$defs/entityIdentifier"},
+        "relationship": {
+          "type": "string",
+          "enum": [
+            "owns",
+            "delegated_to",
+            "initiated",
+            "spawned",
+            "parent_of",
+            "executed",
+            "accessed",
+            "read",
+            "wrote",
+            "connected_to",
+            "targeted",
+            "derived_from",
+            "related_to"
+          ]
+        },
+        "target_entity_id": {"$ref": "#/$defs/entityIdentifier"},
+        "observed_at": {"$ref": "#/$defs/timestamp"}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_id",
+        "observed_at",
+        "action_type",
+        "phase",
+        "role",
+        "source_entity_id",
+        "summary",
+        "attributes"
+      ],
+      "properties": {
+        "evidence_id": {
+          "type": "string",
+          "pattern": "^evd_[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$"
+        },
+        "observed_at": {"$ref": "#/$defs/timestamp"},
+        "action_type": {"$ref": "#/$defs/namespacedIdentifier"},
+        "phase": {
+          "type": "string",
+          "enum": ["proposed", "pre_execution", "post_execution", "runtime"]
+        },
+        "role": {
+          "type": "string",
+          "enum": ["trigger", "supporting", "context"]
+        },
+        "source_entity_id": {"$ref": "#/$defs/entityIdentifier"},
+        "target_entity_ids": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/entityIdentifier"},
+          "uniqueItems": true,
+          "maxItems": 64
+        },
+        "summary": {"type": "string", "minLength": 1, "maxLength": 2048},
+        "attributes": {"$ref": "#/$defs/attributes"}
+      }
+    },
+    "evidenceChainStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sequence",
+        "evidence_id",
+        "source_entity_id",
+        "relationship",
+        "target_entity_id"
+      ],
+      "properties": {
+        "sequence": {"type": "integer", "minimum": 1},
+        "evidence_id": {
+          "type": "string",
+          "pattern": "^evd_[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$"
+        },
+        "source_entity_id": {"$ref": "#/$defs/entityIdentifier"},
+        "relationship": {
+          "type": "string",
+          "enum": [
+            "owns",
+            "delegated_to",
+            "initiated",
+            "spawned",
+            "parent_of",
+            "executed",
+            "accessed",
+            "read",
+            "wrote",
+            "connected_to",
+            "targeted",
+            "derived_from",
+            "related_to"
+          ]
+        },
+        "target_entity_id": {"$ref": "#/$defs/entityIdentifier"}
+      }
+    },
+    "evidenceChain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["chain_id", "type", "summary", "steps"],
+      "properties": {
+        "chain_id": {
+          "type": "string",
+          "pattern": "^chn_[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["causal", "temporal", "delegation", "data_flow"]
+        },
+        "summary": {"type": "string", "minLength": 1, "maxLength": 2048},
+        "steps": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/evidenceChainStep"},
+          "minItems": 1,
+          "maxItems": 256
+        }
+      }
+    }
+  }
+}
