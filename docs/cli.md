@@ -1,20 +1,20 @@
-# AiDR local CLI
+# Agent Runtime Security local CLI
 
-Status: Alpha  
+Status: Alpha
 Last updated: September 22, 2026
 
-The repository-root `aidr` command is the local control plane for the Codex adapter. It does not require installation into Python and its baseline commands make no network requests.
+The repository-root `agent-runtime-security` command is the local control plane for the Codex adapter. It does not require installation into Python and its baseline commands make no network requests.
 
 ## Quick start
 
 From this repository:
 
 ```bash
-./aidr doctor --deep
-./aidr policy check
-./aidr simulate --command 'ping evil.com'
-./aidr status
-./aidr detections
+./agent-runtime-security doctor --deep
+./agent-runtime-security policy check
+./agent-runtime-security simulate --command 'ping evil.com'
+./agent-runtime-security status
+./agent-runtime-security detections
 ```
 
 `simulate` evaluates a proposed action without starting a shell, executing the command, or invoking an optional remote enrichment provider. Exit status `2` means the simulated action was denied; `0` means it was allowed.
@@ -24,45 +24,45 @@ From this repository:
 Preview a project installation:
 
 ```bash
-./aidr install --scope project --target /path/to/project --dry-run
+./agent-runtime-security install --scope project --target /path/to/project --dry-run
 ```
 
 Install it:
 
 ```bash
-./aidr install --scope project --target /path/to/project
+./agent-runtime-security install --scope project --target /path/to/project
 ```
 
 For all repositories using the current user configuration:
 
 ```bash
-./aidr install --scope user
+./agent-runtime-security install --scope user
 ```
 
-Installation merges six AiDR lifecycle handlers into `hooks.json`: `SessionStart`, `SubagentStart`, `PreToolUse`, `PermissionRequest`, `PostToolUse`, and `SessionEnd`. Existing non-AiDR handlers are preserved. Repeated installation is idempotent. An existing file is copied to a timestamped `hooks.json.aidr-backup-*` file before replacement, and the resulting configuration uses mode `0600`.
+Installation merges six Agent Runtime Security lifecycle handlers into `hooks.json`: `SessionStart`, `SubagentStart`, `PreToolUse`, `PermissionRequest`, `PostToolUse`, and `SessionEnd`. Existing non-Agent Runtime Security handlers are preserved. Repeated installation is idempotent. An existing file is copied to a timestamped `hooks.json.agent-runtime-security-backup-*` file before replacement, and the resulting configuration uses mode `0600`.
 
 Project hooks must be reviewed and trusted in Codex. Start a fresh session, open `/hooks`, and confirm that the command and policy paths are expected. The alpha installer intentionally does not bypass that trust step.
 
-The installed hook command points to this checkout's absolute `.aidr/codex_hook.py` path. Keep the checkout in place; reinstall after moving it. Packaging the adapter independently of a checkout is a later milestone.
+The installed hook command points to this checkout's absolute `.agent-runtime-security/codex_hook.py` path. Keep the checkout in place; reinstall after moving it. Packaging the adapter independently of a checkout is a later milestone.
 
 ## Remove the adapter
 
-Preview or remove only the AiDR-owned handlers:
+Preview or remove only the Agent Runtime Security-owned handlers:
 
 ```bash
-./aidr uninstall --scope project --target /path/to/project --dry-run
-./aidr uninstall --scope project --target /path/to/project
+./agent-runtime-security uninstall --scope project --target /path/to/project --dry-run
+./agent-runtime-security uninstall --scope project --target /path/to/project
 ```
 
 Unrelated handlers and hook groups remain intact, and an existing file is backed up before replacement.
 
 ## Policy workflow
 
-AiDRQL is the authoring format; the generated JSON file is the runtime policy:
+ARSQuery is the authoring format; the generated JSON file is the runtime policy:
 
 ```bash
-./aidr policy check
-./aidr policy compile
+./agent-runtime-security policy check
+./agent-runtime-security policy compile
 ```
 
 `check` fails if the generated IR differs from the source and runtime settings. `compile` validates the source and atomically activates the generated bundle while maintaining the last-known-good policy.

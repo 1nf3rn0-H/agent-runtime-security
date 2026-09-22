@@ -1,14 +1,14 @@
 {
-  "description": "AiDR policy and correlation hooks for every supported local tool in this workspace.",
+  "description": "Agent Runtime Security policy and correlation hooks for every supported local tool in this workspace.",
   "hooks": {
     "SessionStart": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "/usr/bin/python3 /Users/harshmehta/Desktop/Projects/AiDR/.aidr/codex_hook.py --rules /Users/harshmehta/Desktop/Projects/AiDR/.aidr/rules.json",
+            "command": "/usr/bin/python3 .agent-runtime-security/codex_hook.py --rules .agent-runtime-security/rules.json",
             "timeout": 2,
-            "statusMessage": "AiDR is starting session tracing"
+            "statusMessage": "Agent Runtime Security is starting session tracing"
           }
         ]
       }
@@ -18,9 +18,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/usr/bin/python3 /Users/harshmehta/Desktop/Projects/AiDR/.aidr/codex_hook.py --rules /Users/harshmehta/Desktop/Projects/AiDR/.aidr/rules.json",
+            "command": "/usr/bin/python3 .agent-runtime-security/codex_hook.py --rules .agent-runtime-security/rules.json",
             "timeout": 2,
-            "statusMessage": "AiDR is linking the subagent trace"
+            "statusMessage": "Agent Runtime Security is linking the subagent trace"
           }
         ]
       }
@@ -31,9 +31,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/usr/bin/python3 /Users/harshmehta/Desktop/Projects/AiDR/.aidr/codex_hook.py --rules /Users/harshmehta/Desktop/Projects/AiDR/.aidr/rules.json",
+            "command": "/usr/bin/python3 .agent-runtime-security/codex_hook.py --rules .agent-runtime-security/rules.json",
             "timeout": 2,
-            "statusMessage": "AiDR is checking the pending tool action"
+            "statusMessage": "Agent Runtime Security is checking the pending tool action"
           }
         ]
       }
@@ -44,9 +44,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/usr/bin/python3 /Users/harshmehta/Desktop/Projects/AiDR/.aidr/codex_hook.py --rules /Users/harshmehta/Desktop/Projects/AiDR/.aidr/rules.json",
+            "command": "/usr/bin/python3 .agent-runtime-security/codex_hook.py --rules .agent-runtime-security/rules.json",
             "timeout": 2,
-            "statusMessage": "AiDR is checking the permission request"
+            "statusMessage": "Agent Runtime Security is checking the permission request"
           }
         ]
       }
@@ -57,9 +57,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/usr/bin/python3 /Users/harshmehta/Desktop/Projects/AiDR/.aidr/codex_hook.py --rules /Users/harshmehta/Desktop/Projects/AiDR/.aidr/rules.json",
+            "command": "/usr/bin/python3 .agent-runtime-security/codex_hook.py --rules .agent-runtime-security/rules.json",
             "timeout": 2,
-            "statusMessage": "AiDR is recording tool completion"
+            "statusMessage": "Agent Runtime Security is recording tool completion"
           }
         ]
       }
@@ -69,9 +69,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/usr/bin/python3 /Users/harshmehta/Desktop/Projects/AiDR/.aidr/codex_hook.py --rules /Users/harshmehta/Desktop/Projects/AiDR/.aidr/rules.json",
+            "command": "/usr/bin/python3 .agent-runtime-security/codex_hook.py --rules .agent-runtime-security/rules.json",
             "timeout": 2,
-            "statusMessage": "AiDR is finalizing session telemetry"
+            "statusMessage": "Agent Runtime Security is finalizing session telemetry"
           }
         ]
       }

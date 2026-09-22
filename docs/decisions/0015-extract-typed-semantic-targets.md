@@ -1,14 +1,14 @@
 # ADR-0015: Extract typed semantic targets before policy evaluation
 
-Status: Accepted for prototype  
-Date: 2026-09-21  
+Status: Accepted for prototype
+Date: 2026-09-21
 Extends: ADR-0011, ADR-0013, ADR-0014
 
 ## Context
 
 Raw argument rules bind policy to each utility's spelling and option layout. The same destination can appear as a `ping` host, a `curl` URL, a Git remote, or a tool-input field. Raw matching also produces weak evidence because it cannot distinguish a file path from a network endpoint or package name.
 
-AiDR needs a vendor-neutral target layer before adding reputation or threat-intelligence enrichment. The layer must not execute a command, resolve DNS, access files, or infer targets from unsupported syntax.
+Agent Runtime Security needs a vendor-neutral target layer before adding reputation or threat-intelligence enrichment. The layer must not execute a command, resolve DNS, access files, or infer targets from unsupported syntax.
 
 ## Options considered
 

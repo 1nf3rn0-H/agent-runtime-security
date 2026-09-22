@@ -2,8 +2,8 @@
 
 Status: Superseded by [ADR-0017](0017-policy-gated-remote-threat-intelligence.md)
 
-Status: Accepted for prototype  
-Date: 2026-09-22  
+Status: Accepted for prototype
+Date: 2026-09-22
 Extends: ADR-0002, ADR-0012, ADR-0015
 
 ## Context
@@ -22,7 +22,7 @@ Use option 3. Load a bounded local snapshot, validate its structure and freshnes
 
 The configured `required` flag controls availability behavior. Required snapshot failures deny preventive events. Optional failures produce no matches and remain visible in local diagnostics. Remote feed acquisition is never performed by the policy evaluator.
 
-Threat-driven detections include bounded match evidence and the exact feed SHA-256. Confidence values are evidence only until AiDRQL gains numeric comparison semantics.
+Threat-driven detections include bounded match evidence and the exact feed SHA-256. Confidence values are evidence only until ARSQuery gains numeric comparison semantics.
 
 ## Consequences
 

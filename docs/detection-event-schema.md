@@ -1,16 +1,16 @@
-# AiDR detection event schema
+# Agent Runtime Security detection event schema
 
-Status: Accepted for prototype  
-Schema version: `1.2.0`  
+Status: Accepted for prototype
+Schema version: `1.2.0`
 Last updated: September 11, 2026
 
 ## Boundary
 
-AiDR collects hook, tool, process, filesystem, and network observations only as internal correlation inputs. Those observations may be held in memory or in a bounded local diagnostic buffer, but they are not the product's outbound event stream.
+Agent Runtime Security collects hook, tool, process, filesystem, and network observations only as internal correlation inputs. Those observations may be held in memory or in a bounded local diagnostic buffer, but they are not the product's outbound event stream.
 
-AiDR emits a durable event only when a detection rule matches. Each emitted event is self-contained and includes the minimum evidence needed to understand the detection and response. AiDR does not require a data lake or SIEM.
+Agent Runtime Security emits a durable event only when a detection rule matches. Each emitted event is self-contained and includes the minimum evidence needed to understand the detection and response. Agent Runtime Security does not require a data lake or SIEM.
 
-The normative JSON Schema is [`schemas/aidr-detection-event.schema.json`](../schemas/aidr-detection-event.schema.json).
+The normative JSON Schema is [`schemas/agent-runtime-security-detection-event.schema.json`](../schemas/agent-runtime-security-detection-event.schema.json).
 
 ## Event model
 
@@ -23,7 +23,7 @@ The normative JSON Schema is [`schemas/aidr-detection-event.schema.json`](../sch
 | `relationships` | Directed edges explaining causal or contextual links between entities |
 | `evidence` | A bounded set of sanitized observations supporting the rule match |
 | `evidence_chains` | Ordered causal, temporal, delegation, or data-flow paths referencing evidence and entities |
-| `response` | What AiDR did, where enforcement occurred, and why |
+| `response` | What Agent Runtime Security did, where enforcement occurred, and why |
 | `data_handling` | Explicit disclosure of command handling and secret scanning |
 | `extensions` | Namespaced, non-sensitive vendor fields; never a raw vendor payload |
 
@@ -42,7 +42,7 @@ This graph lets a single detection explain behavior correlated across multiple t
 
 For pre-execution denials, recognized semantic targets are emitted as bounded `network_endpoint`, `file`, `repository`, or `other` entities. The proposed tool call uses a `targeted` relationship to those entities. This records intent visible in the proposed action; it does not claim that a connection, write, installation, or Git operation completed.
 
-Threat-driven detections add only bounded provider-result IDs, verdicts, labels, sources, matched targets, and detection-ratio values. Provider availability, lookup count, latency, and failure mode appear in the namespaced `com.aidr.threat_intelligence` extension. API keys, complete provider responses, URL credentials, query strings, and fragments are prohibited from detection output.
+Threat-driven detections add only bounded provider-result IDs, verdicts, labels, sources, matched targets, and detection-ratio values. Provider availability, lookup count, latency, and failure mode appear in the namespaced `com.agent_runtime_security.threat_intelligence` extension. API keys, complete provider responses, URL credentials, query strings, and fragments are prohibited from detection output.
 
 For detections involving more than one hop, `evidence_chains` provides the ordered explanation that the graph alone does not convey. Every step references an `evidence_id` and expresses one entity-to-entity relationship. Step sequence numbers start at `1`, are contiguous, and must follow the observed causal or temporal order. Atomic detections may omit `evidence_chains`.
 
@@ -50,7 +50,7 @@ For detections involving more than one hop, `evidence_chains` provides the order
 
 - `event_id` uniquely identifies one immutable detection event.
 - `correlation.correlation_id` identifies the logical detection case. A later update is a new event with its own `event_id` and the same `correlation_id`.
-- `correlation.trace_ids` lists every AiDR execution trace that contributed evidence. It supports rules spanning sessions or process chains.
+- `correlation.trace_ids` lists every Agent Runtime Security execution trace that contributed evidence. It supports rules spanning sessions or process chains.
 - `correlation.action_ids` identifies exact tool-call lifecycles when the harness supplies a tool-use identifier.
 - `correlation.request_fingerprints` links semantically identical request and approval observations when an event lacks the exact tool-use identifier.
 - `correlation.sessions` identifies contributing harness sessions without making the schema vendor-specific.
@@ -90,7 +90,7 @@ Consumers can retain only the latest event per correlation ID if they need a cur
 | Sensitive payload | May exist briefly for evaluation | Minimized and explicitly classified |
 | Export | Never | Only through an explicitly configured detection sink |
 
-The current `.aidr/events.jsonl` file predates this boundary and records all hook observations for prototype debugging. It is not conformant with this detection schema and must not be treated as the future output interface. Runtime rule denials are emitted separately to `.aidr/detections.jsonl` using this schema.
+The current `.agent-runtime-security/events.jsonl` file predates this boundary and records all hook observations for prototype debugging. It is not conformant with this detection schema and must not be treated as the future output interface. Runtime rule denials are emitted separately to `.agent-runtime-security/detections.jsonl` using this schema.
 
 ## Examples
 

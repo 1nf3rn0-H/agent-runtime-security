@@ -1,12 +1,12 @@
 # ADR-0017: Use policy-gated remote threat intelligence
 
-Status: Accepted  
-Date: September 22, 2026  
+Status: Accepted
+Date: September 22, 2026
 Supersedes: [ADR-0016](0016-local-offline-threat-intelligence.md)
 
 ## Context
 
-AiDR previously loaded a complete local indicator snapshot on every hook invocation. The product direction now treats reputation as an optional add-on and requires a current provider lookup only for domains/IPs deliberately selected by policy.
+Agent Runtime Security previously loaded a complete local indicator snapshot on every hook invocation. The product direction now treats reputation as an optional add-on and requires a current provider lookup only for domains/IPs deliberately selected by policy.
 
 Unconditional remote enrichment would disclose every destination, consume quota, add latency to benign actions, and make unrelated rules dependent on a third party. A policy condition must therefore identify the subset that justifies enrichment before the request occurs.
 

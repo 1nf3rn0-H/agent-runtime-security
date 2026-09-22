@@ -1,7 +1,7 @@
-# AiDR policy compiler
+# Agent Runtime Security policy compiler
 
-Status: Alpha  
-Language version: `aidrql/2`  
+Status: Alpha
+Language version: `arsquery/2`
 Last updated: September 22, 2026
 
 ## Architecture
@@ -9,7 +9,7 @@ Last updated: September 22, 2026
 Rule authors do not write Codex hook responses or the runtime JSON format directly.
 
 ```text
-AiDRQL source
+ARSQuery source
     |
     v
 Parser -> typed source model -> semantic validator -> runtime policy IR
@@ -18,7 +18,7 @@ Parser -> typed source model -> semantic validator -> runtime policy IR
                                               harness adapters such as Codex
 ```
 
-The checked-in authoring source is [`policies/default.aidrql`](../policies/default.aidrql). The compiler combines it with [`.aidr/runtime.json`](../.aidr/runtime.json) and produces [`.aidr/rules.json`](../.aidr/rules.json). The hook reads only the generated JSON, so compilation adds no dependency or parsing cost to the inline enforcement path.
+The checked-in authoring source is [`policies/default.arsq`](../policies/default.arsq). The compiler combines it with [`.agent-runtime-security/runtime.json`](../.agent-runtime-security/runtime.json) and produces [`.agent-runtime-security/rules.json`](../.agent-runtime-security/rules.json). The hook reads only the generated JSON, so compilation adds no dependency or parsing cost to the inline enforcement path.
 
 The generated object declares runtime IR version `1.4.0` and is validated against the shared semantic contract before being activated with an atomic file replacement. The hook validates it again at load time and records its canonical SHA-256. See the [runtime policy lifecycle](runtime-policy.md).
 
@@ -36,24 +36,24 @@ VERSION "1"
 WHEN tool.name IS "Bash"
 AND process.executable IS ["ping", "ping6"]
 AND network.destinations MATCHES "^evil\\.com$"
-THEN DENY "Blocked by AiDR: ping destination matched a prohibited-domain policy."
+THEN DENY "Blocked by Agent Runtime Security: ping destination matched a prohibited-domain policy."
 END
 ```
 
 Compile it with:
 
 ```bash
-python3 .aidr/policy_compiler.py policies/default.aidrql \
-  --settings .aidr/runtime.json \
-  --output .aidr/rules.json
+python3 .agent-runtime-security/policy_compiler.py policies/default.arsq \
+  --settings .agent-runtime-security/runtime.json \
+  --output .agent-runtime-security/rules.json
 ```
 
 Check that the generated IR is current without modifying it:
 
 ```bash
-python3 .aidr/policy_compiler.py policies/default.aidrql \
-  --settings .aidr/runtime.json \
-  --output .aidr/rules.json \
+python3 .agent-runtime-security/policy_compiler.py policies/default.arsq \
+  --settings .agent-runtime-security/runtime.json \
+  --output .agent-runtime-security/rules.json \
   --check
 ```
 
@@ -126,16 +126,16 @@ Use `IS` first, `CONTAINS` for literal fragments, and `MATCHES` only when the va
 | `tool.threat.<field>` | Equivalent threat fields for normalized tool-call targets |
 | `tool.input.<key>` | One **direct** key of the tool input object, such as `tool.input.url` or `tool.input.targets` |
 
-String fields accept `==`, `!=`, `IN`, `NOT_IN`, `CONTAINS`, `STARTS_WITH`, `ENDS_WITH`, and `MATCHES`. `IN` and `NOT_IN` take a non-empty list of strings; the other binary operators take a quoted string. `MATCHES` uses Python regular-expression search semantics.
+ARSQuery/2 compiles the simple operators into the existing runtime operators. Advanced policies may continue to use `==`, `!=`, `IN`, `NOT_IN`, `HAS_ANY`, `HAS_ALL`, `HAS_NONE`, `STARTS_WITH`, `ENDS_WITH`, `ANY_MATCHES`, and the older `CASE_SENSITIVE true|false` statement. This compatibility surface is useful for explicit negative and all-values logic but is no longer required for ordinary rules.
 
-List fields accept `HAS_ANY`, `HAS_ALL`, and `HAS_NONE` with exact-value lists, plus `ANY_MATCHES` with one quoted regular expression. Process argument, dispatch, semantic target, and tool target fields are lists. `tool.input.<key>` can be either a string or a list and accepts the corresponding operators. Every field also accepts `EXISTS` and `NOT_EXISTS`, which take no value. A missing value does **not** satisfy `!=`, `NOT_IN`, or `HAS_NONE`; use `NOT_EXISTS` to test absence. A present JSON `null` satisfies `EXISTS` but not string or list comparisons.
+`MATCHES` and legacy `ANY_MATCHES` use Python regular-expression search semantics. Process argument, dispatch, semantic target, and tool target fields are lists. `tool.input.<key>` is dynamically typed; prefer normalized fields such as `tool.targets` when matching a list across tool contracts. A missing value does **not** satisfy a negative comparison; use `NOT_EXISTS` to test absence. A present JSON `null` satisfies `EXISTS` but not string or list comparisons.
 
 For example, a rule can distinguish an indirectly dispatched process:
 
 ```text
 RULE audit-xargs-ping
-WHEN process.executable == "ping"
-AND process.dispatch_chain HAS_ANY ["xargs"]
+WHEN process.executable IS "ping"
+AND process.dispatch_chain IS "xargs"
 THEN AUDIT
 END
 ```
@@ -144,9 +144,8 @@ A semantic rule can block a destination across recognized network command layout
 
 ```text
 RULE block-prohibited-network-target
-WHEN network.destinations HAS_ANY ["evil.com", "203.0.113.10"]
-THEN DENY
-MESSAGE "Blocked a prohibited network destination."
+WHEN network.destinations IS ["evil.com", "203.0.113.10"]
+THEN DENY "Blocked a prohibited network destination."
 END
 ```
 
@@ -162,15 +161,14 @@ For example, this rule blocks a proposed MCP upload before the call reaches the 
 
 ```text
 RULE block-mcp-upload
-WHEN tool.family == "mcp"
+WHEN tool.family IS "mcp"
 AND tool.input.url CONTAINS "evil.com"
-AND tool.input.targets HAS_ANY ["private", "sensitive"]
-THEN DENY
-MESSAGE "Blocked upload to a prohibited destination."
+AND tool.input.targets IS ["private", "sensitive"]
+THEN DENY "Blocked upload to a prohibited destination."
 END
 ```
 
-The generated matcher is a bounded list of field/operator/value predicates, with `case_sensitive` set at the rule level. Older hand-written JSON matchers remain readable by the hook for compatibility, but new AiDRQL compilation uses this predicate-list IR. See [ADR-0011](decisions/0011-bounded-predicate-list-ir.md).
+The generated matcher is a bounded list of field/operator/value predicates, with `case_sensitive` set at the rule level. The simple syntax is lowered at compile time, so the inline adapter does not interpret ARSQuery or infer field types. Older ARSQuery/1 policies and hand-written JSON matchers remain readable for compatibility. See [ADR-0011](decisions/0011-bounded-predicate-list-ir.md) and [ADR-0019](decisions/0019-simplify-arsquery-matching.md).
 
 ## Decision semantics
 
@@ -197,10 +195,10 @@ The compiler rejects:
 
 Errors include the source line number whenever possible.
 
-The current compiler caps source size at 256 KiB, rules at 1,000, conditions per rule at 32, list values at 128, and each condition literal at 4,096 characters. These bounds protect compilation but are not a guarantee of inline hook latency; production deployment still needs policy-load validation and latency budgets. Regular expressions are compiled for validity, not guaranteed linear-time, and should be used sparingly on bounded inputs.
+The current compiler caps source size at 256 KiB, rules at 1,000, conditions per rule at 32, list values at 128, and each condition literal at 4,096 characters. These bounds protect compilation but are not a guarantee of inline hook latency; production deployment still needs policy-load validation and latency budgets. Regular expressions are compiled for validity and once per predicate evaluation, but are not guaranteed linear-time. Prefer `IS` and `CONTAINS` when their semantics are sufficient.
 
 ## Extension model
 
-AiDRQL is one frontend, not the runtime policy model. Future Sigma-YAML, KQL-subset, or SQL-subset frontends should produce the same typed source model and runtime IR. This prevents authoring syntax from leaking into Codex, Claude Code, or endpoint adapters.
+ARSQuery is one frontend, not the runtime policy model. Future Sigma-YAML, KQL-subset, or SQL-subset frontends should produce the same typed source model and runtime IR. This prevents authoring syntax from leaking into Codex, Claude Code, or endpoint adapters.
 
 The initial version deliberately excludes OR, NOT, parentheses, joins, aggregation, and time windows. Those features require a richer runtime condition tree rather than ad hoc source rewriting.

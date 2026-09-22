@@ -1,12 +1,12 @@
 # Policy-gated remote threat intelligence
 
-Status: Implemented for the prototype  
-Provider: VirusTotal API v3  
+Status: Implemented for the prototype
+Provider: VirusTotal API v3
 Last updated: September 22, 2026
 
 ## Boundary
 
-Threat intelligence is an optional add-on. AiDR stores no local indicator feed and does not persist provider responses. The inline evaluator contacts VirusTotal only when all non-threat conditions in a rule match and a domain or IP matches that rule's explicit regex gate.
+Threat intelligence is an optional add-on. Agent Runtime Security stores no local indicator feed and does not persist provider responses. The inline evaluator contacts VirusTotal only when all non-threat conditions in a rule match and a domain or IP matches that rule's explicit regex gate.
 
 The API key is read from an environment variable and is never accepted in policy, written to telemetry, or copied into a detection. VirusTotal necessarily receives every selected domain or IP; policy authors must therefore make lookup regexes as narrow as their privacy and quota requirements demand.
 
@@ -49,11 +49,11 @@ END
 
 For normalized MCP or local-tool inputs, use `tool.network.destinations ANY_MATCHES` with `tool.threat.*` predicates. A threat predicate without its corresponding gate is rejected during compilation and runtime validation.
 
-AiDR first checks the other rule conditions. It then queries only matching domains/IPs, memoizes duplicate lookups for that one event, and evaluates the threat predicate. It never performs remote enrichment for `PostToolUse` observations.
+Agent Runtime Security first checks the other rule conditions. It then queries only matching domains/IPs, memoizes duplicate lookups for that one event, and evaluates the threat predicate. It never performs remote enrichment for `PostToolUse` observations.
 
 ## Verdict mapping
 
-AiDR consumes VirusTotal's `last_analysis_stats`:
+Agent Runtime Security consumes VirusTotal's `last_analysis_stats`:
 
 - `malicious` when the malicious-engine count reaches `malicious_threshold`;
 - otherwise `suspicious` when the suspicious-engine count reaches `suspicious_threshold`;

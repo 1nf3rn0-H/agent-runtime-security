@@ -1,7 +1,7 @@
 # ADR-0014: Model known indirect process dispatch
 
-Status: Accepted for prototype  
-Date: 2026-09-21  
+Status: Accepted for prototype
+Date: 2026-09-21
 Extends: ADR-0013
 
 ## Context

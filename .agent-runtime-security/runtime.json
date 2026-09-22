@@ -1,14 +1,14 @@
 {
   "trace": {
-    "state_dir": ".aidr/state",
+    "state_dir": ".agent-runtime-security/state",
     "inject_shell_environment": true
   },
   "telemetry": {
-    "path": ".aidr/events.jsonl",
+    "path": ".agent-runtime-security/events.jsonl",
     "include_raw_command": true
   },
   "detections": {
-    "path": ".aidr/detections.jsonl",
+    "path": ".agent-runtime-security/detections.jsonl",
     "emit_actions": ["deny"]
   },
   "threat_intelligence": {

@@ -1,0 +1,24 @@
+# Agent Runtime Security Query Language v2
+DEFAULT ALLOW
+
+RULE block-ping-evil-domain
+TITLE "Network probing of a prohibited domain"
+DESCRIPTION "Prevent an agent from invoking ping against an explicitly prohibited domain."
+SEVERITY high
+CATEGORY network.prohibited_destination
+VERSION "1"
+WHEN tool.name IS "Bash"
+AND process.executable IS ["ping", "ping6"]
+AND network.destinations MATCHES "^evil\\.com$"
+THEN DENY "Blocked by Agent Runtime Security: ping destination matched a prohibited-domain policy."
+END
+
+RULE audit-all-shell-commands
+TITLE "Audit shell command"
+DESCRIPTION "Record every shell command without changing its decision."
+SEVERITY informational
+CATEGORY execution.shell_command
+VERSION "1"
+WHEN tool.name IS "Bash"
+THEN AUDIT
+END

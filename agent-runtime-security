@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Repository entry point for the AiDR control-plane CLI."""
+"""Repository entry point for the Agent Runtime Security control-plane CLI."""
 
 from pathlib import Path
 import sys
 
 
-CORE = Path(__file__).resolve().parent / ".aidr"
+CORE = Path(__file__).resolve().parent / ".agent-runtime-security"
 sys.path.insert(0, str(CORE))
 
 from cli import main  # noqa: E402

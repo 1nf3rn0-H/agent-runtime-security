@@ -1,4 +1,4 @@
-"""Build schema-versioned AiDR detection events from matched policy decisions."""
+"""Build schema-versioned Agent Runtime Security detection events from matched policy decisions."""
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ def _rule_identifier(rule_id: str) -> str:
     if re.fullmatch(r"[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+", rule_id):
         return rule_id
     normalized = IDENTIFIER_PART.sub("_", rule_id.casefold()).strip("_") or "unnamed"
-    return f"aidr.rule.{normalized}"
+    return f"agent_runtime_security.rule.{normalized}"
 
 
 def _correlation_id(
@@ -122,7 +122,7 @@ def build_detection_event(
         "event_type": "detection",
         "emitted_at": observed_at,
         "producer": {
-            "name": "aidr",
+            "name": "agent-runtime-security",
             "version": PRODUCER_VERSION,
             "component": "policy_engine",
         },
@@ -237,13 +237,13 @@ def build_detection_event(
             "secret_scan": "not_run",
         },
         "extensions": {
-            "com.aidr.policy": {
+            "com.agent_runtime_security.policy": {
                 "bundle_sha256": policy_metadata["sha256"],
                 "ir_version": policy_metadata["ir_version"],
                 "source": policy_metadata.get("source"),
                 "used_last_known_good": policy_metadata["used_last_known_good"],
             },
-            "com.aidr.threat_intelligence": {
+            "com.agent_runtime_security.threat_intelligence": {
                 "enabled": bool((threat_intelligence or {}).get("enabled")),
                 "available": bool((threat_intelligence or {}).get("available")),
                 "provider": (threat_intelligence or {}).get("provider"),

@@ -20,6 +20,7 @@
 | [0016](0016-local-offline-threat-intelligence.md) | Superseded | Match semantic targets against validated local threat-intelligence snapshots |
 | [0017](0017-policy-gated-remote-threat-intelligence.md) | Accepted | Query VirusTotal only for domain/IP targets selected by policy regex gates |
 | [0018](0018-local-cli-and-reversible-codex-installation.md) | Accepted | Provide a local control plane and reversible Codex hook installation |
-| [0019](0019-simplify-aidrql-matching.md) | Accepted | Simplify exact, literal, regex, case, and deny authoring while preserving the runtime IR |
+| [0019](0019-simplify-arsquery-matching.md) | Accepted | Simplify exact, literal, regex, case, and deny authoring while preserving the runtime IR |
+| [0020](0020-rename-product-to-agent-runtime-security.md) | Accepted | Rename the product and its public technical namespaces to agent-runtime-security |
 
 New records should use [the ADR template](template.md).

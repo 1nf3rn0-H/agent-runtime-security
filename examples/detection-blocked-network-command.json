@@ -4,13 +4,13 @@
   "event_type": "detection",
   "emitted_at": "2026-09-11T10:15:30.125Z",
   "producer": {
-    "name": "aidr",
+    "name": "agent-runtime-security",
     "version": "0.1.0",
     "component": "policy_engine"
   },
   "detection": {
     "rule": {
-      "id": "aidr.network.blocked_domain",
+      "id": "agent_runtime_security.network.blocked_domain",
       "version": "1",
       "ruleset": "local-default"
     },
@@ -121,7 +121,7 @@
   "response": {
     "action": "blocked",
     "enforcement_point": "pre_execution",
-    "reason": "Blocked by AiDR before the Bash tool reached the shell.",
+    "reason": "Blocked by Agent Runtime Security before the Bash tool reached the shell.",
     "policy_latency_us": 479
   },
   "data_handling": {

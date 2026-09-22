@@ -92,7 +92,7 @@ def _default_transport(url: str, api_key: str, timeout: float) -> tuple[int, byt
         url,
         headers={
             "Accept": "application/json",
-            "User-Agent": "AiDR/0.1",
+            "User-Agent": "agent-runtime-security/0.3",
             "x-apikey": api_key,
         },
         method="GET",

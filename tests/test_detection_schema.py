@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
-SCHEMA = ROOT / "schemas" / "aidr-detection-event.schema.json"
+SCHEMA = ROOT / "schemas" / "agent-runtime-security-detection-event.schema.json"
 EXAMPLES = (
     ROOT / "examples" / "detection-blocked-network-command.json",
     ROOT / "examples" / "detection-correlated-process-chain.json",
@@ -66,8 +66,8 @@ class DetectionSchemaTests(unittest.TestCase):
     def test_examples_contain_no_trace_tokens(self) -> None:
         for path in EXAMPLES:
             serialized = path.read_text(encoding="utf-8")
-            self.assertNotIn("AIDR_TRACE_TOKEN", serialized, path.name)
-            self.assertNotIn("AIDR_ACTOR_TOKEN", serialized, path.name)
+            self.assertNotIn("ARS_TRACE_TOKEN", serialized, path.name)
+            self.assertNotIn("ARS_ACTOR_TOKEN", serialized, path.name)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""Compiler from AiDRQL authoring rules to the deterministic runtime policy IR."""
+"""Compiler from ARSQuery authoring rules to the deterministic runtime policy IR."""
 
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ from policy_ir import (  # noqa: E402 - local script module path is established 
 )
 
 
-LANGUAGE_VERSION = "aidrql/2"
+LANGUAGE_VERSION = "arsquery/2"
 MAX_SOURCE_BYTES = 262_144
 CONDITION = re.compile(
     r"^(WHEN|AND)\s+([a-z][a-z0-9_.]*)\s+"
@@ -277,7 +277,7 @@ def compile_rule(rule: SourceRule) -> dict[str, Any]:
         is_list = name in LIST_FIELDS
         is_tool_input = TOOL_INPUT_FIELD.fullmatch(name) is not None
 
-        # AiDRQL/2 keeps authoring independent of runtime scalar/list details.
+        # ARSQuery/2 keeps authoring independent of runtime scalar/list details.
         # Legacy operators remain accepted so existing policies do not break.
         if operator == "IS":
             if is_list or (is_tool_input and isinstance(value, list)):

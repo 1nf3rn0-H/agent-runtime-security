@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run a network-free AiDR enforcement and correlation smoke test."""
+"""Run a network-free Agent Runtime Security enforcement and correlation smoke test."""
 
 from __future__ import annotations
 
@@ -11,8 +11,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
-HOOK = ROOT / ".aidr" / "codex_hook.py"
-RULES = ROOT / ".aidr" / "rules.json"
+HOOK = ROOT / ".agent-runtime-security" / "codex_hook.py"
+RULES = ROOT / ".agent-runtime-security" / "rules.json"
 TRACE_FIXTURE = ROOT / "tests" / "fixtures" / "print_trace_chain.py"
 
 
@@ -46,7 +46,7 @@ def require(condition: bool, message: str) -> None:
 
 
 def main() -> int:
-    with tempfile.TemporaryDirectory(prefix="aidr-smoke-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="agent-runtime-security-smoke-") as temporary:
         directory = Path(temporary)
         policy = json.loads(RULES.read_text(encoding="utf-8"))
         policy["telemetry"]["path"] = str(directory / "events.jsonl")
@@ -86,7 +86,7 @@ def main() -> int:
             for row in (json.loads(line) for line in executed.stdout.splitlines())
         }
         require(environments["parent"] == environments["child"], "child lost trace context")
-        require(bool(environments["parent"]["AIDR_ACTION_ID"]), "action id was not injected")
+        require(bool(environments["parent"]["ARS_ACTION_ID"]), "action id was not injected")
 
         post = hook_event(rewritten, "PostToolUse")
         post["tool_response"] = {"exit_code": 0}
@@ -108,7 +108,7 @@ def main() -> int:
         print("PASS  denied command never dispatched by the hook")
         print("PASS  schema-v1.2 detection emitted without raw command content")
         print("PASS  safe command allowed with trace and action context")
-        print("PASS  child process inherited the complete AiDR context")
+        print("PASS  child process inherited the complete Agent Runtime Security context")
         print("PASS  PreToolUse and PostToolUse share one exact action_id")
         print("PASS  temporary test state removed on exit")
     return 0

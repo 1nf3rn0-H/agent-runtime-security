@@ -1,19 +1,19 @@
-# AiDR runtime policy lifecycle
+# Agent Runtime Security runtime policy lifecycle
 
-Status: Implemented for prototype  
-Runtime IR version: `1.4.0`  
+Status: Implemented for prototype
+Runtime IR version: `1.4.0`
 Last updated: September 22, 2026
 
 ## Boundary
 
-AiDRQL is the authoring format. The generated runtime policy is an immutable, versioned bundle consumed by the inline hook. The normative structural contract is [`schemas/aidr-runtime-policy.schema.json`](../schemas/aidr-runtime-policy.schema.json); the dependency-free runtime validator in [`.aidr/policy_ir.py`](../.aidr/policy_ir.py) additionally enforces semantic constraints that JSON Schema cannot conveniently express, including unique rule IDs and field/operator compatibility.
+ARSQuery is the authoring format. The generated runtime policy is an immutable, versioned bundle consumed by the inline hook. The normative structural contract is [`schemas/agent-runtime-security-runtime-policy.schema.json`](../schemas/agent-runtime-security-runtime-policy.schema.json); the dependency-free runtime validator in [`.agent-runtime-security/policy_ir.py`](../.agent-runtime-security/policy_ir.py) additionally enforces semantic constraints that JSON Schema cannot conveniently express, including unique rule IDs and field/operator compatibility.
 
 The runtime IR is not intended for manual authoring.
 
 ## Activation flow
 
 ```text
-AiDRQL + runtime settings
+ARSQuery + runtime settings
           |
           v
 parse -> type-check -> lower to IR -> validate IR
@@ -32,22 +32,22 @@ Compilation refuses to activate a generated bundle that fails runtime validation
 Compile and activate:
 
 ```bash
-python3 .aidr/policy_compiler.py policies/default.aidrql \
-  --settings .aidr/runtime.json \
-  --output .aidr/rules.json
+python3 .agent-runtime-security/policy_compiler.py policies/default.arsq \
+  --settings .agent-runtime-security/runtime.json \
+  --output .agent-runtime-security/rules.json
 ```
 
 Verify that the active output is current:
 
 ```bash
-python3 .aidr/policy_compiler.py policies/default.aidrql \
-  --settings .aidr/runtime.json \
-  --output .aidr/rules.json --check
+python3 .agent-runtime-security/policy_compiler.py policies/default.arsq \
+  --settings .agent-runtime-security/runtime.json \
+  --output .agent-runtime-security/rules.json --check
 ```
 
 ## Load and recovery flow
 
-For each hook process, AiDR:
+For each hook process, Agent Runtime Security:
 
 1. Rejects an active file larger than 1 MiB before parsing it.
 2. Reads one byte snapshot and rejects invalid UTF-8, invalid JSON, and duplicate JSON keys.
@@ -63,15 +63,15 @@ If the active bundle cannot be read or validated, the loader attempts the permis
   "policy": {
     "ir_version": "1.4.0",
     "sha256": "...",
-    "source": "policies/default.aidrql",
-    "language": "aidrql/2",
+    "source": "policies/default.arsq",
+    "language": "arsquery/2",
     "used_last_known_good": true,
     "load_warning": "invalid JSON in active policy ..."
   }
 }
 ```
 
-When a deny detection is emitted, `policy.bundle_sha256` and `policy.ir_version` are evidence attributes. The same provenance appears under `extensions.com.aidr.policy`; the load warning is retained only in local diagnostic telemetry to avoid leaking local paths or parser details into product detections.
+When a deny detection is emitted, `policy.bundle_sha256` and `policy.ir_version` are evidence attributes. The same provenance appears under `extensions.com.agent_runtime_security.policy`; the load warning is retained only in local diagnostic telemetry to avoid leaking local paths or parser details into product detections.
 
 ## Failure semantics
 

@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://aidr.dev/schemas/detection-event/1.2.0",
-  "title": "AiDR Detection Event",
-  "description": "The durable AiDR event emitted when correlated internal observations match a detection rule.",
+  "$id": "https://agent-runtime-security.dev/schemas/detection-event/1.2.0",
+  "title": "Agent Runtime Security Detection Event",
+  "description": "The durable Agent Runtime Security event emitted when correlated internal observations match a detection rule.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -39,7 +39,7 @@
       "additionalProperties": false,
       "required": ["name", "version", "component"],
       "properties": {
-        "name": {"const": "aidr"},
+        "name": {"const": "agent-runtime-security"},
         "version": {"type": "string", "minLength": 1, "maxLength": 64},
         "component": {
           "type": "string",

@@ -12,12 +12,12 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
-COMPILER_PATH = ROOT / ".aidr" / "policy_compiler.py"
-SOURCE = ROOT / "policies" / "default.aidrql"
-SETTINGS = ROOT / ".aidr" / "runtime.json"
-OUTPUT = ROOT / ".aidr" / "rules.json"
+COMPILER_PATH = ROOT / ".agent-runtime-security" / "policy_compiler.py"
+SOURCE = ROOT / "policies" / "default.arsq"
+SETTINGS = ROOT / ".agent-runtime-security" / "runtime.json"
+OUTPUT = ROOT / ".agent-runtime-security" / "rules.json"
 
-spec = importlib.util.spec_from_file_location("aidr_policy_compiler", COMPILER_PATH)
+spec = importlib.util.spec_from_file_location("agent_runtime_security_policy_compiler", COMPILER_PATH)
 compiler = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 sys.modules[spec.name] = compiler
@@ -29,7 +29,7 @@ class PolicyCompilerTests(unittest.TestCase):
         compiled = compiler.compile_policy(
             SOURCE.read_text(encoding="utf-8"),
             json.loads(SETTINGS.read_text(encoding="utf-8")),
-            "policies/default.aidrql",
+            "policies/default.arsq",
         )
         self.assertEqual(compiled, json.loads(OUTPUT.read_text(encoding="utf-8")))
 
@@ -37,7 +37,7 @@ class PolicyCompilerTests(unittest.TestCase):
         compiled = compiler.compile_policy(
             SOURCE.read_text(encoding="utf-8"),
             json.loads(SETTINGS.read_text(encoding="utf-8")),
-            "policies/default.aidrql",
+            "policies/default.arsq",
         )
         match = compiled["rules"][0]["match"]
         self.assertEqual(
@@ -221,11 +221,11 @@ END
             compiler.parse_policy(source)
         with self.assertRaisesRegex(compiler.CompileError, "must not define rules"):
             compiler.compile_policy(
-                SOURCE.read_text(encoding="utf-8"), {"rules": []}, "test.aidrql"
+                SOURCE.read_text(encoding="utf-8"), {"rules": []}, "test.arsq"
             )
         with self.assertRaisesRegex(compiler.CompileError, "unknown keys"):
             compiler.compile_policy(
-                SOURCE.read_text(encoding="utf-8"), {"unexpected": True}, "test.aidrql"
+                SOURCE.read_text(encoding="utf-8"), {"unexpected": True}, "test.arsq"
             )
 
     def test_bounded_lists_and_conditions(self) -> None:
@@ -273,7 +273,7 @@ END
             for index in range(500)
         )
         started = time.perf_counter()
-        compiled = compiler.compile_policy(source, {}, "bulk.aidrql")
+        compiled = compiler.compile_policy(source, {}, "bulk.arsq")
         elapsed = time.perf_counter() - started
         self.assertEqual(len(compiled["rules"]), 500)
         self.assertLess(elapsed, 2.0, f"compile took {elapsed:.3f}s")

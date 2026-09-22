@@ -1,23 +1,23 @@
 # ADR-0018: Add a local CLI and reversible Codex hook installation
 
-Status: Accepted  
+Status: Accepted
 Date: September 22, 2026
 
 ## Context
 
-The Codex proof of concept could enforce policy, but operating it required hand-editing `hooks.json`, directly invoking Python modules, and knowing which files represented source policy, runtime policy, and detections. That is not a workable installation or verification experience. Hook files may also contain unrelated user configuration that AiDR must not overwrite.
+The Codex proof of concept could enforce policy, but operating it required hand-editing `hooks.json`, directly invoking Python modules, and knowing which files represented source policy, runtime policy, and detections. That is not a workable installation or verification experience. Hook files may also contain unrelated user configuration that Agent Runtime Security must not overwrite.
 
 Codex project hooks are a trust boundary. Installation must leave their exact command visible for review instead of attempting to approve or conceal it.
 
 ## Decision
 
-Provide a repository-root, dependency-free `aidr` CLI as the alpha control plane. It owns these workflows:
+Provide a repository-root, dependency-free `agent-runtime-security` CLI as the alpha control plane. It owns these workflows:
 
-- idempotently merge AiDR handlers into project- or user-scoped Codex hooks;
-- remove only handlers recognizable as AiDR-owned;
+- idempotently merge Agent Runtime Security handlers into project- or user-scoped Codex hooks;
+- remove only handlers recognizable as Agent Runtime Security-owned;
 - preserve unrelated configuration and create a timestamped backup before replacement;
 - diagnose adapter, policy, storage, and smoke-test health;
-- compile and check AiDRQL policy;
+- compile and check ARSQuery policy;
 - simulate policy locally without dispatch or network access; and
 - inspect product status and detection events.
 
@@ -27,8 +27,8 @@ Configuration replacement is atomic and uses user-only file permissions. The CLI
 
 ## Consequences
 
-- A user can install, validate, safely demonstrate, inspect, and remove AiDR through one interface.
+- A user can install, validate, safely demonstrate, inspect, and remove Agent Runtime Security through one interface.
 - Existing hook configuration is retained, and rollback artifacts are available.
-- Moving or deleting the checkout breaks an installed alpha hook until AiDR is reinstalled.
+- Moving or deleting the checkout breaks an installed alpha hook until Agent Runtime Security is reinstalled.
 - User-scoped installation broadens coverage but does not make application hooks tamper-proof.
 - Packaged executables, signed artifacts, upgrades, and organization-managed deployment remain future work.

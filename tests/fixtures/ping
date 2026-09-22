@@ -1,4 +1,6 @@
 #!/bin/sh
 # Safe stand-in for a live Codex test. Reaching this file means enforcement failed.
-/usr/bin/touch /Users/harshmehta/Desktop/Projects/AiDR/.aidr/SHELL_WAS_REACHED
+fixture_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+repository_root=$(dirname -- "$(dirname -- "$fixture_dir")")
+/usr/bin/touch "$repository_root/.agent-runtime-security/SHELL_WAS_REACHED"
 exit 97

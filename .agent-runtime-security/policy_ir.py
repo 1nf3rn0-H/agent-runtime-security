@@ -1,4 +1,4 @@
-"""Validation, hashing, and atomic activation for the AiDR runtime policy IR."""
+"""Validation, hashing, and atomic activation for the Agent Runtime Security runtime policy IR."""
 
 from __future__ import annotations
 

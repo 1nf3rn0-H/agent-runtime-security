@@ -1,9 +1,9 @@
-.aidr/events.jsonl
-.aidr/SHELL_WAS_REACHED
-.aidr/TRACE_CHAIN_CAPTURE.json
-.aidr/SUBAGENT_TRACE_CAPTURE.json
-.aidr/state/
-.aidr/detections.jsonl
-.aidr/*.lkg
+.agent-runtime-security/events.jsonl
+.agent-runtime-security/SHELL_WAS_REACHED
+.agent-runtime-security/TRACE_CHAIN_CAPTURE.json
+.agent-runtime-security/SUBAGENT_TRACE_CAPTURE.json
+.agent-runtime-security/state/
+.agent-runtime-security/detections.jsonl
+.agent-runtime-security/*.lkg
 __pycache__/
 *.pyc

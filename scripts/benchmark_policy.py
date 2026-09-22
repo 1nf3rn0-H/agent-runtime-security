@@ -13,7 +13,7 @@ from typing import Callable
 
 
 ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / ".aidr"))
+sys.path.insert(0, str(ROOT / ".agent-runtime-security"))
 
 from codex_hook import evaluate  # noqa: E402
 from policy_compiler import compile_policy  # noqa: E402
@@ -62,7 +62,7 @@ def main() -> int:
 
     source = policy_source(args.rules)
     compile_started = time.perf_counter_ns()
-    policy = compile_policy(source, {}, "benchmark.aidrql")
+    policy = compile_policy(source, {}, "benchmark.arsq")
     compile_ms = (time.perf_counter_ns() - compile_started) / 1_000_000
     event = {
         "hook_event_name": "PreToolUse",
@@ -73,7 +73,7 @@ def main() -> int:
     regex_policy = compile_policy(
         'DEFAULT ALLOW\nRULE regex-gate\nWHEN network.destinations MATCHES "^evil\\\\.com$"\nTHEN AUDIT\nEND\n',
         {},
-        "benchmark-regex.aidrql",
+        "benchmark-regex.arsq",
     )
     regex_event = {
         "hook_event_name": "PreToolUse",
@@ -91,17 +91,17 @@ def main() -> int:
         "exact": compile_policy(
             'RULE exact\nWHEN action.command IS "printf evil.com"\nTHEN AUDIT\nEND\n',
             {},
-            "benchmark-exact.aidrql",
+            "benchmark-exact.arsq",
         ),
         "contains": compile_policy(
             'RULE contains\nWHEN action.command CONTAINS "evil.com"\nTHEN AUDIT\nEND\n',
             {},
-            "benchmark-contains.aidrql",
+            "benchmark-contains.arsq",
         ),
         "regex": compile_policy(
             'RULE regex\nWHEN action.command MATCHES "evil\\\\.com$"\nTHEN AUDIT\nEND\n',
             {},
-            "benchmark-matches.aidrql",
+            "benchmark-matches.arsq",
         ),
     }
 

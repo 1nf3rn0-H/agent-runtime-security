@@ -1,11 +1,11 @@
 # ADR-0007: Use a uniform response contract for supported tools
 
-Status: Accepted for prototype  
+Status: Accepted for prototype
 Date: 2026-09-12
 
 ## Context
 
-The first AiDR prototype intercepted only Bash commands. Agent activity also occurs through file-edit tools, MCP servers, delegation tools, and other local functions. Maintaining a separate policy engine for every tool would produce inconsistent decisions and incomplete correlation.
+The first Agent Runtime Security prototype intercepted only Bash commands. Agent activity also occurs through file-edit tools, MCP servers, delegation tools, and other local functions. Maintaining a separate policy engine for every tool would produce inconsistent decisions and incomplete correlation.
 
 Codex can route supported local function tools through `PreToolUse` and `PostToolUse`, with a wildcard matcher covering every supported occurrence. Tool input shapes and safe rewrite behavior remain tool-specific.
 
@@ -23,10 +23,10 @@ Only Bash is rewritten today, solely to inject trace context; this documented re
 
 ## Consequences
 
-- File edits, MCP calls, agent delegation calls, and other supported local tools now reach the AiDR decision path.
+- File edits, MCP calls, agent delegation calls, and other supported local tools now reach the Agent Runtime Security decision path.
 - Generic input metadata can be correlated without persisting complete tool arguments.
 - Policies can deny a non-shell tool by canonical `tool_name` even before richer semantic matchers are introduced.
-- Permission escalation is evaluated again, and AiDR never silently approves it.
+- Permission escalation is evaluated again, and Agent Runtime Security never silently approves it.
 - Hosted and specialized opt-out tool paths remain uncovered.
 - `PostToolUse` response is detective because it cannot undo completed side effects.
 - A future adapter registry should replace the initial name-based classifier as tool semantics mature.

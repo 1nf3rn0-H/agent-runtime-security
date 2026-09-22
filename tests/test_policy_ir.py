@@ -11,11 +11,11 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
-MODULE_PATH = ROOT / ".aidr" / "policy_ir.py"
-RULES = ROOT / ".aidr" / "rules.json"
-SCHEMA = ROOT / "schemas" / "aidr-runtime-policy.schema.json"
+MODULE_PATH = ROOT / ".agent-runtime-security" / "policy_ir.py"
+RULES = ROOT / ".agent-runtime-security" / "rules.json"
+SCHEMA = ROOT / "schemas" / "agent-runtime-security-runtime-policy.schema.json"
 
-spec = importlib.util.spec_from_file_location("aidr_policy_ir", MODULE_PATH)
+spec = importlib.util.spec_from_file_location("agent_runtime_security_policy_ir", MODULE_PATH)
 policy_ir = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 sys.modules[spec.name] = policy_ir
@@ -71,7 +71,29 @@ class RuntimePolicyIRTests(unittest.TestCase):
             policy_ir.validate_policy(policy)
 
         policy = current_policy()
-        del policy["rules"][1]["match"]["conditions"][2]
+        policy["rules"].append(
+            {
+                "id": "threat-gate-test",
+                "action": "audit",
+                "match": {
+                    "case_sensitive": False,
+                    "conditions": [
+                        {
+                            "field": "network.destinations",
+                            "operator": "ANY_MATCHES",
+                            "value": "^example\\.com$",
+                        },
+                        {
+                            "field": "threat.verdicts",
+                            "operator": "HAS_ANY",
+                            "value": ["malicious"],
+                        },
+                    ],
+                },
+            }
+        )
+        policy_ir.validate_policy(policy)
+        del policy["rules"][-1]["match"]["conditions"][0]
         with self.assertRaisesRegex(policy_ir.PolicyValidationError, "ANY_MATCHES gate"):
             policy_ir.validate_policy(policy)
 

@@ -1,4 +1,4 @@
-"""Bounded, non-executing parser for the shell subset enforced by AiDR."""
+"""Bounded, non-executing parser for the shell subset enforced by Agent Runtime Security."""
 
 from __future__ import annotations
 

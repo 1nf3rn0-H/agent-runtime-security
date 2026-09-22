@@ -1,6 +1,6 @@
-# Testing AiDR
+# Testing Agent Runtime Security
 
-Status: Current prototype  
+Status: Current prototype
 Last updated: September 22, 2026
 
 ## 1. Run the isolated smoke test
@@ -22,7 +22,7 @@ The smoke test uses a temporary directory and makes no network request. It verif
 The equivalent product health workflow is:
 
 ```bash
-./aidr doctor --deep
+./agent-runtime-security doctor --deep
 ```
 
 Temporary policy, state, observations, and detections are deleted automatically.
@@ -38,12 +38,12 @@ All tests should report `OK`.
 The compiler suite also stress-checks 500-rule compilation, bounded literals and condition counts, invalid operator/field combinations, and end-to-end pre-tool enforcement of newly compiled fields and operators. To check that the generated runtime policy matches its source, run:
 
 ```bash
-python3 .aidr/policy_compiler.py policies/default.aidrql \
-  --settings .aidr/runtime.json \
-  --output .aidr/rules.json --check
+python3 .agent-runtime-security/policy_compiler.py policies/default.arsq \
+  --settings .agent-runtime-security/runtime.json \
+  --output .agent-runtime-security/rules.json --check
 ```
 
-The CLI equivalents are `./aidr policy check` and `./aidr policy compile`.
+The CLI equivalents are `./agent-runtime-security policy check` and `./agent-runtime-security policy compile`.
 
 Runtime-policy tests additionally cover unknown fields, incompatible versions, duplicate JSON keys and rule IDs, invalid predicates, oversized bundles, deterministic hashes, permission-restricted atomic activation, last-known-good recovery, and fail-closed behavior when both active and recovery bundles are invalid.
 
@@ -58,15 +58,15 @@ PYTHONDONTWRITEBYTECODE=1 python3 scripts/benchmark_policy.py \
   --rules 1000 --samples 200
 ```
 
-This reports compilation, validation, base engine evaluation, and regex-gated target evaluation. It does not measure provider network latency, Python startup, or the complete harness round trip.
+This reports compilation, validation, base engine evaluation, regex-gated target evaluation, and separate exact, literal-contains, and scalar-regex matcher timings. It does not measure provider network latency, Python startup, or the complete harness round trip. The matcher results are individual workloads, not proof that one operator will always outperform another on every input.
 
 ## 3. Exercise individual hook contracts
 
 These commands send JSON directly to the hook. They do not execute the command inside `tool_input`:
 
 ```bash
-python3 .aidr/codex_hook.py --explain < examples/pretooluse-ping-evil.json
-python3 .aidr/codex_hook.py --explain < examples/permissionrequest-ping-evil.json
+python3 .agent-runtime-security/codex_hook.py --explain < examples/pretooluse-ping-evil.json
+python3 .agent-runtime-security/codex_hook.py --explain < examples/permissionrequest-ping-evil.json
 ```
 
 The first response should contain `permissionDecision: "deny"`. The second should contain `decision.behavior: "deny"` under the `PermissionRequest` response shape.
@@ -80,13 +80,13 @@ Start a new Codex session in this repository. Open `/hooks`, review the changed 
 Before the test, remove only the old sentinel if it exists:
 
 ```bash
-rm -f .aidr/SHELL_WAS_REACHED
+rm -f .agent-runtime-security/SHELL_WAS_REACHED
 ```
 
 Ask Codex to run this exact command without substitution:
 
 ```text
-Run `PATH=/Users/harshmehta/Desktop/Projects/AiDR/tests/fixtures:$PATH ping evil.com` exactly as written. Do not substitute another command.
+Run `PATH=/path/to/agent-runtime-security/tests/fixtures:$PATH ping evil.com` exactly as written, replacing the repository path for your checkout. Do not substitute another command.
 ```
 
 The prepended path selects `tests/fixtures/ping`, a harmless executable that only creates the sentinel and exits. No real `ping` program or network request can run through that command.
@@ -94,14 +94,14 @@ The prepended path selects `tests/fixtures/ping`, a harmless executable that onl
 Expected result:
 
 - Codex reports that `PreToolUse` blocked the command.
-- `.aidr/SHELL_WAS_REACHED` does not exist.
-- `.aidr/detections.jsonl` gains one `blocked` detection.
+- `.agent-runtime-security/SHELL_WAS_REACHED` does not exist.
+- `.agent-runtime-security/detections.jsonl` gains one `blocked` detection.
 
 Verify:
 
 ```bash
-test ! -e .aidr/SHELL_WAS_REACHED && echo "PASS: shell was not reached"
-tail -n 1 .aidr/detections.jsonl | python3 -m json.tool
+test ! -e .agent-runtime-security/SHELL_WAS_REACHED && echo "PASS: shell was not reached"
+tail -n 1 .agent-runtime-security/detections.jsonl | python3 -m json.tool
 ```
 
 In the detection, check `schema_version`, `correlation`, `evidence_chains`, and `response`. The response action should be `blocked` with enforcement point `pre_execution`.

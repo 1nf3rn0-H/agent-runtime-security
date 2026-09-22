@@ -1,7 +1,7 @@
 {
   "session_id": "demo-session",
   "turn_id": "demo-turn",
-  "cwd": "/Users/harshmehta/Desktop/Projects/AiDR",
+  "cwd": "/workspace/agent-runtime-security",
   "hook_event_name": "PermissionRequest",
   "tool_name": "Bash",
   "tool_input": {

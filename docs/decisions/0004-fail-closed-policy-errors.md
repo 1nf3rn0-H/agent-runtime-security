@@ -1,6 +1,6 @@
 # ADR-0004: Fail closed on policy loading and parsing errors
 
-Status: Accepted  
+Status: Accepted
 Date: August 18, 2026
 
 ## Context

@@ -1,15 +1,15 @@
-# AiDR product requirements document
+# Agent Runtime Security product requirements document
 
-Status: Draft for alignment  
-Owner: AiDR project  
-Last updated: September 21, 2026  
+Status: Draft for alignment
+Owner: Agent Runtime Security project
+Last updated: September 21, 2026
 Target: Codex alpha, followed by a second agent-harness adapter
 
 ## 1. Product definition
 
-AiDR is a local runtime security layer for AI coding agents. It evaluates proposed agent actions before execution, attaches user and execution-chain context, applies understandable static policies, prevents disallowed actions on supported paths, and emits a minimized detection with the evidence needed to explain each response.
+Agent Runtime Security is a local runtime security layer for AI coding agents. It evaluates proposed agent actions before execution, attaches user and execution-chain context, applies understandable static policies, prevents disallowed actions on supported paths, and emits a minimized detection with the evidence needed to explain each response.
 
-AiDR is not a SIEM, a data lake, or a classifier of model intent. Its first responsibility is deterministic control of observable actions at the agent/tool boundary. Operating-system controls may later provide defense in depth for actions that bypass that boundary.
+Agent Runtime Security is not a SIEM, a data lake, or a classifier of model intent. Its first responsibility is deterministic control of observable actions at the agent/tool boundary. Operating-system controls may later provide defense in depth for actions that bypass that boundary.
 
 ## 2. Problem
 
@@ -25,9 +25,9 @@ Users need a control that can answer, locally and before execution:
 
 ## 3. Product hypothesis
 
-If AiDR provides low-latency pre-execution policy enforcement with clear, portable rules and detection-only output, developers and security teams can allow useful agent autonomy while reducing the risk of unsafe shell, filesystem, network, integration, and delegation activity.
+If Agent Runtime Security provides low-latency pre-execution policy enforcement with clear, portable rules and detection-only output, developers and security teams can allow useful agent autonomy while reducing the risk of unsafe shell, filesystem, network, integration, and delegation activity.
 
-This hypothesis is validated when users can install AiDR, run a supplied safety test, author a policy without editing harness-specific JSON, observe a prohibited action being blocked before dispatch, and understand the resulting detection without inspecting raw agent telemetry.
+This hypothesis is validated when users can install Agent Runtime Security, run a supplied safety test, author a policy without editing harness-specific JSON, observe a prohibited action being blocked before dispatch, and understand the resulting detection without inspecting raw agent telemetry.
 
 ## 4. Users and jobs to be done
 
@@ -56,7 +56,7 @@ This hypothesis is validated when users can install AiDR, run a supplied safety 
 - Codex lifecycle integration for session, subagent, pre-tool, permission, and post-tool events.
 - Pre-execution evaluation for supported shell, file-edit, MCP, delegation, and local tool requests.
 - Session and actor correlation across registered subagents and ordinary descendant processes.
-- AiDRQL compilation to bounded runtime policy IR.
+- ARSQuery compilation to bounded runtime policy IR.
 - Static `ALLOW`, `DENY`, and `AUDIT` rules over normalized action and context fields.
 - Local, schema-versioned detection events with response information and evidence chains.
 - Network-free installation, validation, and smoke tests.
@@ -92,11 +92,11 @@ The user writes a readable policy, compiles it, receives line-specific validatio
 
 ### 7.3 Block an action
 
-The harness proposes a tool action. AiDR normalizes the request, enriches it with local context, evaluates policy, and returns a deny before dispatch. The user sees a safe, actionable reason. AiDR emits one detection for each denying rule according to the documented precedence model.
+The harness proposes a tool action. Agent Runtime Security normalizes the request, enriches it with local context, evaluates policy, and returns a deny before dispatch. The user sees a safe, actionable reason. Agent Runtime Security emits one detection for each denying rule according to the documented precedence model.
 
 ### 7.4 Allow and correlate an action
 
-AiDR permits an action and attaches correlation context where the adapter can do so safely. Pre/post tool events, subagent actions, and observable descendant processes retain a stable trace and exact action identity. No durable detection is emitted unless a rule matches.
+Agent Runtime Security permits an action and attaches correlation context where the adapter can do so safely. Pre/post tool events, subagent actions, and observable descendant processes retain a stable trace and exact action identity. No durable detection is emitted unless a rule matches.
 
 ### 7.5 Investigate a detection
 
@@ -108,10 +108,10 @@ Priority uses `P0` for release-blocking, `P1` for required beta capability, and 
 
 | ID | Priority | Requirement | Acceptance outcome |
 |---|---:|---|---|
-| PR-01 | P0 | AiDR evaluates every action exposed by an enabled supported pre-execution hook | Adapter conformance tests account for every advertised preventive tool path |
+| PR-01 | P0 | Agent Runtime Security evaluates every action exposed by an enabled supported pre-execution hook | Adapter conformance tests account for every advertised preventive tool path |
 | PR-02 | P0 | A deny prevents the evaluated tool input from being dispatched | Sentinel and harness tests show zero execution side effects after deny |
 | PR-03 | P0 | Policy evaluation is deterministic for identical normalized input, context, and policy | Repeated and cross-process fixtures produce byte-equivalent decisions, excluding timestamps and IDs |
-| PR-04 | P0 | Rules are authored independently of Codex response JSON | AiDRQL source compiles to validated IR consumed by the Codex adapter |
+| PR-04 | P0 | Rules are authored independently of Codex response JSON | ARSQuery source compiles to validated IR consumed by the Codex adapter |
 | PR-05 | P0 | Core decisions do not require a remote dependency; rules using the optional reputation add-on declare that dependency explicitly | Baseline allow/deny conformance tests pass with network disabled; provider rules have separate failure-mode tests |
 | PR-06 | P0 | Each deny has an actionable reason and a schema-valid detection | The response names the matched policy; all emitted detections pass schema validation |
 | PR-07 | P0 | Raw tokens, prompts, model responses, and arbitrary hook payloads are not emitted as product telemetry | Secret and prohibited-field tests find no leakage in detection output |
@@ -121,7 +121,7 @@ Priority uses `P0` for release-blocking, `P1` for required beta capability, and 
 | PR-11 | P1 | Users can distinguish coverage from security boundary | Status and diagnostics report enabled hooks, unsupported paths, and missing defense-in-depth controls |
 | PR-12 | P1 | Policies can be layered with deterministic precedence | Organization, user, repository, and session conflicts have tested resolution rules |
 | PR-13 | P1 | A second harness can reuse the action, policy, decision, and detection contracts | The new adapter passes the common conformance suite without changing rule semantics |
-| PR-14 | P2 | AiDR can correlate endpoint observations without trusting environment tokens as identity | Process records combine trace hints with OS identity and ancestry evidence |
+| PR-14 | P2 | Agent Runtime Security can correlate endpoint observations without trusting environment tokens as identity | Process records combine trace hints with OS identity and ancestry evidence |
 | PR-15 | P1 | Policies can request remote reputation only for domains/IPs selected by an explicit regex gate | Non-matches make zero provider calls; matching process/tool targets use the configured verdict and failure mode |
 
 ## 9. Key areas of success
@@ -167,7 +167,7 @@ No stage advances solely because a feature exists. It advances when the stated e
 
 ## 12. Risks and product decisions still required
 
-- Harnesses can change or omit hook behavior. AiDR needs versioned compatibility claims and negative coverage reporting.
+- Harnesses can change or omit hook behavior. Agent Runtime Security needs versioned compatibility claims and negative coverage reporting.
 - Application hooks can be disabled by a sufficiently privileged local actor. Positioning must not imply endpoint-enforcement strength until an independent control exists.
 - Shell syntax, generated scripts, indirect interpreters, and delayed execution can defeat shallow command parsing. Production shell policy requires a non-executing AST and adversarial corpus.
 - Environment correlation can be removed or spoofed. It is a hint until joined with trusted OS observations.

@@ -1,4 +1,4 @@
-"""End-to-end checks that AiDRQL predicates enforce at the pre-tool hook."""
+"""End-to-end checks that ARSQuery predicates enforce at the pre-tool hook."""
 
 from __future__ import annotations
 
@@ -12,11 +12,11 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
-COMPILER = ROOT / ".aidr" / "policy_compiler.py"
-HOOK = ROOT / ".aidr" / "codex_hook.py"
-SETTINGS = ROOT / ".aidr" / "runtime.json"
+COMPILER = ROOT / ".agent-runtime-security" / "policy_compiler.py"
+HOOK = ROOT / ".agent-runtime-security" / "codex_hook.py"
+SETTINGS = ROOT / ".agent-runtime-security" / "runtime.json"
 
-spec = importlib.util.spec_from_file_location("aidr_policy_compiler_e2e", COMPILER)
+spec = importlib.util.spec_from_file_location("agent_runtime_security_policy_compiler_e2e", COMPILER)
 compiler = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 sys.modules[spec.name] = compiler
@@ -40,7 +40,7 @@ class CompiledPolicyRuntimeTests(unittest.TestCase):
         settings["trace"]["state_dir"] = str(self.directory / "state")
         settings["telemetry"]["path"] = str(self.directory / "events.jsonl")
         settings["detections"]["path"] = str(self.directory / "detections.jsonl")
-        compiled = compiler.compile_policy(source, settings, "test.aidrql")
+        compiled = compiler.compile_policy(source, settings, "test.arsq")
         output = self.directory / "rules.json"
         output.write_text(json.dumps(compiled), encoding="utf-8")
         return output
@@ -182,7 +182,7 @@ class CompiledPolicyRuntimeTests(unittest.TestCase):
     def test_agent_and_session_fields(self) -> None:
         policy = self.policy(
             'WHEN agent.id == "child-1"\n'
-            'AND session.cwd ENDS_WITH "/AiDR"\n'
+            f'AND session.cwd ENDS_WITH "/{ROOT.name}"\n'
             'AND action.command MATCHES r"^echo\\s+safe$"\n'
         )
         self.start_subagent(policy, "child-1")

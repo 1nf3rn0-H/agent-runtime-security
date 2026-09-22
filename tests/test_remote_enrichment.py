@@ -10,9 +10,9 @@ from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parent.parent
-AIDR = ROOT / ".aidr"
-if str(AIDR) not in sys.path:
-    sys.path.insert(0, str(AIDR))
+ARS = ROOT / ".agent-runtime-security"
+if str(ARS) not in sys.path:
+    sys.path.insert(0, str(ARS))
 
 
 def load(name: str, path: Path):
@@ -24,8 +24,8 @@ def load(name: str, path: Path):
     return module
 
 
-compiler = load("aidr_remote_compiler_tests", AIDR / "policy_compiler.py")
-hook = load("aidr_remote_hook_tests", AIDR / "codex_hook.py")
+compiler = load("agent_runtime_security_remote_compiler_tests", ARS / "policy_compiler.py")
+hook = load("agent_runtime_security_remote_hook_tests", ARS / "codex_hook.py")
 threat_intel = sys.modules["threat_intel"]
 
 
@@ -62,7 +62,7 @@ def compile_rule(conditions: str) -> dict:
                 "failure_mode": "open",
             }
         },
-        "remote-test.aidrql",
+        "remote-test.arsq",
     )
 
 

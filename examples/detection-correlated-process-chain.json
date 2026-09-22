@@ -4,13 +4,13 @@
   "event_type": "detection",
   "emitted_at": "2026-09-11T10:16:10.500Z",
   "producer": {
-    "name": "aidr",
+    "name": "agent-runtime-security",
     "version": "0.1.0",
     "component": "correlator"
   },
   "detection": {
     "rule": {
-      "id": "aidr.execution.suspicious_child_network_chain",
+      "id": "agent_runtime_security.execution.suspicious_child_network_chain",
       "version": "1"
     },
     "title": "Agent tool spawned a child process that contacted a suspicious endpoint",

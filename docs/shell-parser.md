@@ -1,13 +1,13 @@
-# AiDR bounded shell parser
+# Agent Runtime Security bounded shell parser
 
-Status: Implemented for prototype  
+Status: Implemented for prototype
 Last updated: September 21, 2026
 
 ## Purpose
 
-AiDR must decide whether a proposed shell action matches process policy without executing, expanding, sourcing, or importing the command. Flat token splitting cannot safely preserve executable/argument relationships across substitutions, subshells, redirections, and execution wrappers.
+Agent Runtime Security must decide whether a proposed shell action matches process policy without executing, expanding, sourcing, or importing the command. Flat token splitting cannot safely preserve executable/argument relationships across substitutions, subshells, redirections, and execution wrappers.
 
-The dependency-free parser in [`.aidr/shell_parser.py`](../.aidr/shell_parser.py) builds a bounded structural representation of the supported shell subset. The Codex adapter converts its simple-command nodes into process invocations and evaluates all process predicates for a rule against the same invocation.
+The dependency-free parser in [`.agent-runtime-security/shell_parser.py`](../.agent-runtime-security/shell_parser.py) builds a bounded structural representation of the supported shell subset. The Codex adapter converts its simple-command nodes into process invocations and evaluates all process predicates for a rule against the same invocation.
 
 This is a security-oriented subset parser, not a complete Bash implementation.
 
@@ -66,7 +66,7 @@ printf '%s' '$(ping evil.com)'
 
 The parser marks a word as dynamic when its runtime value depends on parameter expansion, command/process substitution, arithmetic, globbing, tilde expansion, or brace expansion.
 
-- A dynamic executable fails closed because AiDR cannot identify the program that will run.
+- A dynamic executable fails closed because Agent Runtime Security cannot identify the program that will run.
 - A dynamic argument does not automatically deny an unrelated executable.
 - When the static executable matches a process rule and the dynamic argument could change that rule result, evaluation fails closed.
 - A statically present positive match remains deterministic. `ping evil.com "$EXTRA"` matches and emits the normal rule detection; it does not degrade into a parser-error denial.

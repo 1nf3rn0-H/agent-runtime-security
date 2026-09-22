@@ -48,18 +48,18 @@ class TraceContext:
         request_fingerprint: str | None = None,
     ) -> dict[str, str]:
         values = {
-            "AIDR_TRACE_ID": self.trace_id,
-            "AIDR_TRACE_TOKEN": self.trace_token,
-            "AIDR_ACTOR_ID": self.actor_id,
-            "AIDR_ACTOR_TOKEN": self.actor_token,
-            "AIDR_CODEX_SESSION_ID": self.session_id,
+            "ARS_TRACE_ID": self.trace_id,
+            "ARS_TRACE_TOKEN": self.trace_token,
+            "ARS_ACTOR_ID": self.actor_id,
+            "ARS_ACTOR_TOKEN": self.actor_token,
+            "ARS_CODEX_SESSION_ID": self.session_id,
         }
         if tool_call_id:
-            values["AIDR_TOOL_CALL_ID"] = tool_call_id
+            values["ARS_TOOL_CALL_ID"] = tool_call_id
         if action_id:
-            values["AIDR_ACTION_ID"] = action_id
+            values["ARS_ACTION_ID"] = action_id
         if request_fingerprint:
-            values["AIDR_REQUEST_FINGERPRINT"] = request_fingerprint
+            values["ARS_REQUEST_FINGERPRINT"] = request_fingerprint
         return values
 
     def telemetry(self) -> dict[str, Any]:

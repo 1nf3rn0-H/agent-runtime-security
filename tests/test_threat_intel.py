@@ -10,9 +10,9 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
-MODULE_PATH = ROOT / ".aidr" / "threat_intel.py"
+MODULE_PATH = ROOT / ".agent-runtime-security" / "threat_intel.py"
 
-spec = importlib.util.spec_from_file_location("aidr_threat_intel_tests", MODULE_PATH)
+spec = importlib.util.spec_from_file_location("agent_runtime_security_threat_intel_tests", MODULE_PATH)
 threat_intel = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 sys.modules[spec.name] = threat_intel

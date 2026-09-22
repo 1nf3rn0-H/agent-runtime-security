@@ -1,7 +1,7 @@
 # ADR-0011: Use a bounded predicate-list policy IR
 
-Status: Accepted for prototype  
-Date: 2026-09-19  
+Status: Accepted for prototype
+Date: 2026-09-19
 Extends: ADR-0010
 
 ## Context

@@ -1,6 +1,6 @@
-# AiDR engineering documentation
+# Agent Runtime Security engineering documentation
 
-This directory records the engineering options, decisions, constraints, and current direction for AiDR. It is intended to explain not only what is being built, but why the system has taken its present shape.
+This directory records the engineering options, decisions, constraints, and current direction for Agent Runtime Security. It is intended to explain not only what is being built, but why the system has taken its present shape.
 
 ## Living documents
 
@@ -12,12 +12,14 @@ This directory records the engineering options, decisions, constraints, and curr
 - [Detection event schema](detection-event-schema.md) — the versioned, detection-only output contract and evidence graph.
 - [Tool-agnostic response layer](tool-response.md) — coverage, normalization, and response semantics across supported tools.
 - [Testing guide](testing.md) — isolated, contract, and safe live-Codex verification.
-- [Policy compiler](policy-compiler.md) — AiDRQL authoring, semantic validation, and runtime-IR generation.
+- [Policy compiler](policy-compiler.md) — ARSQuery authoring, semantic validation, and runtime-IR generation.
 - [Runtime policy lifecycle](runtime-policy.md) — IR schema, validation, atomic activation, hashing, and last-known-good recovery.
 - [Bounded shell parser](shell-parser.md) — structural parsing, dynamic-value semantics, limits, and unsupported indirect execution paths.
 - [ADR-0015](decisions/0015-extract-typed-semantic-targets.md) — typed semantic targets for policy and minimized detection evidence.
 - [Remote threat intelligence](threat-intelligence.md) — policy-gated VirusTotal lookup, failure behavior, privacy, and evidence.
 - [ADR-0018](decisions/0018-local-cli-and-reversible-codex-installation.md) — local control plane and reversible Codex hook installation.
+- [ADR-0019](decisions/0019-simplify-arsquery-matching.md) — simplified exact, literal, regex, case, and deny authoring.
+- [ADR-0020](decisions/0020-rename-product-to-agent-runtime-security.md) — product, CLI, runtime, query-language, and telemetry namespace rename.
 - [Decision log](decisions/README.md) — accepted and proposed architecture decision records (ADRs).
 
 ## Documentation practice

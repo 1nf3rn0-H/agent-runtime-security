@@ -1,11 +1,11 @@
 # ADR-0001: Use Codex PreToolUse for initial inline enforcement
 
-Status: Accepted  
+Status: Accepted
 Date: August 18, 2026
 
 ## Context
 
-AiDR must prevent a disallowed action before it reaches the shell or another underlying tool. Exported telemetry is generally observed after an event is emitted and cannot guarantee a synchronous decision before execution.
+Agent Runtime Security must prevent a disallowed action before it reaches the shell or another underlying tool. Exported telemetry is generally observed after an event is emitted and cannot guarantee a synchronous decision before execution.
 
 Codex exposes a synchronous `PreToolUse` hook for supported local tool paths. The hook receives structured tool input and can deny or rewrite the proposed call.
 

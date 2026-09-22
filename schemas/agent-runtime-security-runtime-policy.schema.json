@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://aidr.dev/schemas/runtime-policy/1.4.0",
-  "title": "AiDR runtime policy IR",
-  "description": "Validated, generated policy consumed by AiDR harness adapters. This is not an authoring format.",
+  "$id": "https://agent-runtime-security.dev/schemas/runtime-policy/1.4.0",
+  "title": "Agent Runtime Security runtime policy IR",
+  "description": "Validated, generated policy consumed by Agent Runtime Security harness adapters. This is not an authoring format.",
   "type": "object",
   "additionalProperties": false,
   "required": ["policy_ir_version", "default_action", "compiler", "rules"],

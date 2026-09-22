@@ -1,11 +1,11 @@
 # ADR-0002: Separate synchronous enforcement from telemetry export
 
-Status: Accepted  
+Status: Accepted
 Date: August 18, 2026
 
 ## Context
 
-AiDR needs both low-latency blocking and rich telemetry. A remote collector introduces network latency, availability dependencies, and backpressure. Making it authoritative for each tool call would increase the chance of missed deadlines or widespread denial of service.
+Agent Runtime Security needs both low-latency blocking and rich telemetry. A remote collector introduces network latency, availability dependencies, and backpressure. Making it authoritative for each tool call would increase the chance of missed deadlines or widespread denial of service.
 
 ## Options considered
 

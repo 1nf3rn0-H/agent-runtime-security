@@ -2,7 +2,7 @@
   "session_id": "demo-session",
   "turn_id": "demo-turn",
   "tool_use_id": "demo-tool-call",
-  "cwd": "/Users/harshmehta/Desktop/Projects/AiDR",
+  "cwd": "/workspace/agent-runtime-security",
   "hook_event_name": "PreToolUse",
   "tool_name": "Bash",
   "tool_input": {

@@ -1,4 +1,4 @@
-"""AiDR local control plane: install, validate, simulate, and inspect."""
+"""Agent Runtime Security local control plane: install, validate, simulate, and inspect."""
 
 from __future__ import annotations
 
@@ -21,22 +21,22 @@ from policy_compiler import CompileError, compile_policy
 from policy_ir import PolicyValidationError, load_policy, policy_sha256, write_policy_atomic
 
 
-PRODUCT_VERSION = "0.2.0-alpha"
+PRODUCT_VERSION = "0.3.0-alpha"
 ROOT = Path(__file__).resolve().parent.parent
-CORE = ROOT / ".aidr"
-DEFAULT_SOURCE = ROOT / "policies" / "default.aidrql"
+CORE = ROOT / ".agent-runtime-security"
+DEFAULT_SOURCE = ROOT / "policies" / "default.arsq"
 DEFAULT_SETTINGS = CORE / "runtime.json"
 DEFAULT_RULES = CORE / "rules.json"
 DEFAULT_HOOKS = ROOT / ".codex" / "hooks.json"
 HOOK = CORE / "codex_hook.py"
 SMOKE_TEST = ROOT / "scripts" / "smoke_test.py"
 MANAGED_EVENTS = {
-    "SessionStart": (None, "AiDR is starting session tracing"),
-    "SubagentStart": (None, "AiDR is linking the subagent trace"),
-    "PreToolUse": ("*", "AiDR is checking the pending tool action"),
-    "PermissionRequest": ("*", "AiDR is checking the permission request"),
-    "PostToolUse": ("*", "AiDR is recording tool completion"),
-    "SessionEnd": (None, "AiDR is finalizing session telemetry"),
+    "SessionStart": (None, "Agent Runtime Security is starting session tracing"),
+    "SubagentStart": (None, "Agent Runtime Security is linking the subagent trace"),
+    "PreToolUse": ("*", "Agent Runtime Security is checking the pending tool action"),
+    "PermissionRequest": ("*", "Agent Runtime Security is checking the permission request"),
+    "PostToolUse": ("*", "Agent Runtime Security is recording tool completion"),
+    "SessionEnd": (None, "Agent Runtime Security is finalizing session telemetry"),
 }
 
 
@@ -89,7 +89,7 @@ def _compile(source_path: Path, settings_path: Path, output_path: Path, *, check
     if check:
         existing = _read_json(output_path)
         if existing != compiled:
-            raise CliError(f"compiled policy is stale: run `./aidr policy compile`")
+            raise CliError(f"compiled policy is stale: run `./agent-runtime-security policy compile`")
         return compiled
     try:
         write_policy_atomic(output_path, compiled)
@@ -122,7 +122,7 @@ def _hook_group(event: str) -> dict[str, Any]:
     return group
 
 
-def _is_aidr_handler(handler: Any) -> bool:
+def _is_agent_runtime_security_handler(handler: Any) -> bool:
     if not isinstance(handler, dict):
         return False
     command = handler.get("command")
@@ -132,10 +132,14 @@ def _is_aidr_handler(handler: Any) -> bool:
         tokens = shlex.split(command)
     except ValueError:
         return False
-    return str(HOOK) in tokens
+    return any(
+        Path(token).name == "codex_hook.py"
+        and Path(token).parent.name == ".agent-runtime-security"
+        for token in tokens
+    )
 
 
-def _remove_aidr_groups(document: dict[str, Any]) -> int:
+def _remove_agent_runtime_security_groups(document: dict[str, Any]) -> int:
     hooks = document.get("hooks")
     if not isinstance(hooks, dict):
         return 0
@@ -150,7 +154,7 @@ def _remove_aidr_groups(document: dict[str, Any]) -> int:
                 retained_groups.append(group)
                 continue
             handlers = group["hooks"]
-            retained_handlers = [item for item in handlers if not _is_aidr_handler(item)]
+            retained_handlers = [item for item in handlers if not _is_agent_runtime_security_handler(item)]
             removed += len(handlers) - len(retained_handlers)
             if retained_handlers:
                 retained = dict(group)
@@ -174,7 +178,7 @@ def _merged_hooks(existing: Any) -> dict[str, Any]:
     hooks = document.setdefault("hooks", {})
     if not isinstance(hooks, dict):
         raise CliError("hooks.json field `hooks` must be an object")
-    _remove_aidr_groups(document)
+    _remove_agent_runtime_security_groups(document)
     for event in MANAGED_EVENTS:
         groups = hooks.setdefault(event, [])
         if not isinstance(groups, list):
@@ -190,9 +194,9 @@ def _atomic_json(path: Path, document: dict[str, Any]) -> Path | None:
         # Microseconds keep consecutive install/uninstall operations from
         # selecting the same backup name.
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
-        backup = path.with_name(f"{path.name}.aidr-backup-{timestamp}")
+        backup = path.with_name(f"{path.name}.agent-runtime-security-backup-{timestamp}")
         shutil.copy2(path, backup)
-    descriptor, temporary_name = tempfile.mkstemp(prefix=".aidr-hooks-", dir=path.parent)
+    descriptor, temporary_name = tempfile.mkstemp(prefix=".agent-runtime-security-hooks-", dir=path.parent)
     temporary = Path(temporary_name)
     try:
         with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
@@ -227,7 +231,7 @@ def command_install(args: argparse.Namespace) -> int:
         print(json.dumps({"path": str(path), "configuration": document}, indent=2))
         return 0
     backup = _atomic_json(path, document)
-    print(f"installed AiDR Codex hooks: {path}")
+    print(f"installed Agent Runtime Security Codex hooks: {path}")
     if backup is not None:
         print(f"backup: {backup}")
     if args.scope == "project":
@@ -243,15 +247,15 @@ def command_uninstall(args: argparse.Namespace) -> int:
     document = _read_json(path)
     if not isinstance(document, dict):
         raise CliError("hooks.json must contain a JSON object")
-    removed = _remove_aidr_groups(document)
+    removed = _remove_agent_runtime_security_groups(document)
     if args.dry_run:
         print(json.dumps({"path": str(path), "removed_handlers": removed, "configuration": document}, indent=2))
         return 0
     if removed == 0:
-        print(f"AiDR hooks were not installed in {path}")
+        print(f"Agent Runtime Security hooks were not installed in {path}")
         return 0
     backup = _atomic_json(path, document)
-    print(f"removed {removed} AiDR hook handlers from {path}")
+    print(f"removed {removed} Agent Runtime Security hook handlers from {path}")
     if backup is not None:
         print(f"backup: {backup}")
     return 0
@@ -292,22 +296,22 @@ def _hook_checks(path: Path) -> list[Check]:
             if any(
                 isinstance(group, dict)
                 and isinstance(group.get("hooks"), list)
-                and any(_is_aidr_handler(handler) for handler in group["hooks"])
+                and any(_is_agent_runtime_security_handler(handler) for handler in group["hooks"])
                 for group in groups
             ):
                 installed.add(event)
     missing = set(MANAGED_EVENTS) - installed
     if missing:
-        return [Check("fail", "Codex hooks", f"missing AiDR events: {', '.join(sorted(missing))}")]
+        return [Check("fail", "Codex hooks", f"missing Agent Runtime Security events: {', '.join(sorted(missing))}")]
     return [Check("pass", "Codex hooks", f"{len(installed)} lifecycle events installed at {path}")]
 
 
 def _storage_checks(policy: dict[str, Any]) -> list[Check]:
     checks: list[Check] = []
     paths = {
-        "diagnostic observations": _runtime_path(policy.get("telemetry", {}).get("path"), ".aidr/events.jsonl"),
-        "detections": _runtime_path(policy.get("detections", {}).get("path"), ".aidr/detections.jsonl"),
-        "trace state": _runtime_path(policy.get("trace", {}).get("state_dir"), ".aidr/state"),
+        "diagnostic observations": _runtime_path(policy.get("telemetry", {}).get("path"), ".agent-runtime-security/events.jsonl"),
+        "detections": _runtime_path(policy.get("detections", {}).get("path"), ".agent-runtime-security/detections.jsonl"),
+        "trace state": _runtime_path(policy.get("trace", {}).get("state_dir"), ".agent-runtime-security/state"),
     }
     for name, path in paths.items():
         parent = path if name == "trace state" else path.parent
@@ -370,7 +374,7 @@ def _simulation_event(args: argparse.Namespace) -> dict[str, Any]:
         return value
     return {
         "hook_event_name": "PreToolUse",
-        "session_id": "aidr-simulation",
+        "session_id": "agent-runtime-security-simulation",
         "turn_id": "simulation-turn",
         "tool_use_id": "simulation-tool",
         "cwd": str(Path.cwd()),
@@ -417,7 +421,7 @@ def _read_jsonl(path: Path) -> list[dict[str, Any]]:
 
 def command_detections(args: argparse.Namespace) -> int:
     policy = load_policy(args.rules).document
-    path = _runtime_path(policy.get("detections", {}).get("path"), ".aidr/detections.jsonl")
+    path = _runtime_path(policy.get("detections", {}).get("path"), ".agent-runtime-security/detections.jsonl")
     records = _read_jsonl(path)[-args.limit :]
     if args.json:
         print(json.dumps(records, indent=2, sort_keys=True))
@@ -439,8 +443,8 @@ def command_detections(args: argparse.Namespace) -> int:
 def command_status(args: argparse.Namespace) -> int:
     loaded = load_policy(args.rules)
     policy = loaded.document
-    detection_path = _runtime_path(policy.get("detections", {}).get("path"), ".aidr/detections.jsonl")
-    telemetry_path = _runtime_path(policy.get("telemetry", {}).get("path"), ".aidr/events.jsonl")
+    detection_path = _runtime_path(policy.get("detections", {}).get("path"), ".agent-runtime-security/detections.jsonl")
+    telemetry_path = _runtime_path(policy.get("telemetry", {}).get("path"), ".agent-runtime-security/events.jsonl")
     detections = _read_jsonl(detection_path)
     observations = _read_jsonl(telemetry_path)
     hooks = _hook_checks((args.hooks or DEFAULT_HOOKS).resolve())[0]
@@ -468,17 +472,17 @@ def command_status(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="aidr", description=__doc__)
-    parser.add_argument("--version", action="version", version=f"AiDR {PRODUCT_VERSION}")
+    parser = argparse.ArgumentParser(prog="agent-runtime-security", description=__doc__)
+    parser.add_argument("--version", action="version", version=f"Agent Runtime Security {PRODUCT_VERSION}")
     commands = parser.add_subparsers(dest="command", required=True)
 
-    install = commands.add_parser("install", help="merge AiDR into Codex hooks.json")
+    install = commands.add_parser("install", help="merge Agent Runtime Security into Codex hooks.json")
     install.add_argument("--scope", choices=("project", "user"), default="project")
     install.add_argument("--target", type=Path)
     install.add_argument("--dry-run", action="store_true")
     install.set_defaults(function=command_install)
 
-    uninstall = commands.add_parser("uninstall", help="remove only AiDR hook handlers")
+    uninstall = commands.add_parser("uninstall", help="remove only Agent Runtime Security hook handlers")
     uninstall.add_argument("--scope", choices=("project", "user"), default="project")
     uninstall.add_argument("--target", type=Path)
     uninstall.add_argument("--dry-run", action="store_true")
@@ -490,7 +494,7 @@ def build_parser() -> argparse.ArgumentParser:
     doctor.add_argument("--json", action="store_true")
     doctor.set_defaults(function=command_doctor)
 
-    policy = commands.add_parser("policy", help="compile or verify AiDRQL")
+    policy = commands.add_parser("policy", help="compile or verify ARSQuery")
     policy_commands = policy.add_subparsers(dest="policy_command", required=True)
     for name in ("compile", "check"):
         item = policy_commands.add_parser(name)
@@ -535,7 +539,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         return int(args.function(args))
     except (CliError, PolicyValidationError, OSError) as exc:
-        print(f"aidr: error: {exc}", file=sys.stderr)
+        print(f"agent-runtime-security: error: {exc}", file=sys.stderr)
         return 1
 
 

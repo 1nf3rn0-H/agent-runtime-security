@@ -1,7 +1,7 @@
 # ADR-0012: Validate and atomically activate runtime policy
 
-Status: Accepted for prototype  
-Date: 2026-09-21  
+Status: Accepted for prototype
+Date: 2026-09-21
 Extends: ADR-0010 and ADR-0011
 
 ## Context

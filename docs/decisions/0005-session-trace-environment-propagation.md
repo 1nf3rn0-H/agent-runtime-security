@@ -1,11 +1,11 @@
 # ADR-0005: Propagate session traces through the process environment
 
-Status: Accepted for prototype  
+Status: Accepted for prototype
 Date: September 10, 2026
 
 ## Context
 
-AiDR needs to correlate a Codex session and its subagents with subprocesses created by agent-initiated shell commands. Codex supplies lifecycle and tool-call identifiers, but a new operating-system process does not automatically carry those identifiers.
+Agent Runtime Security needs to correlate a Codex session and its subagents with subprocesses created by agent-initiated shell commands. Codex supplies lifecycle and tool-call identifiers, but a new operating-system process does not automatically carry those identifiers.
 
 ## Options considered
 

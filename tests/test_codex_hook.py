@@ -8,9 +8,9 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
-HOOK = ROOT / ".aidr" / "codex_hook.py"
+HOOK = ROOT / ".agent-runtime-security" / "codex_hook.py"
 HOOKS_CONFIG = ROOT / ".codex" / "hooks.json"
-RULES = ROOT / ".aidr" / "rules.json"
+RULES = ROOT / ".agent-runtime-security" / "rules.json"
 TRACE_FIXTURE = ROOT / "tests" / "fixtures" / "print_trace_chain.py"
 
 
@@ -36,6 +36,33 @@ def write_isolated_policy(directory: Path) -> Path:
     policy["trace"]["state_dir"] = str(directory / "state")
     policy_path.write_text(json.dumps(policy), encoding="utf-8")
     return policy_path
+
+
+def add_test_threat_rule(policy: dict) -> None:
+    """Enable a policy-gated lookup without putting TI in the core default policy."""
+    policy["rules"].append(
+        {
+            "id": "test-remote-threat",
+            "action": "deny",
+            "message": "Blocked by test threat policy.",
+            "match": {
+                "case_sensitive": False,
+                "conditions": [
+                    {"field": "process.executable", "operator": "==", "value": "curl"},
+                    {
+                        "field": "network.destinations",
+                        "operator": "ANY_MATCHES",
+                        "value": "^evil\\.com$",
+                    },
+                    {
+                        "field": "threat.verdicts",
+                        "operator": "HAS_ANY",
+                        "value": ["malicious"],
+                    },
+                ],
+            },
+        }
+    )
 
 
 def invoke_event(payload: dict, rules: Path) -> subprocess.CompletedProcess[str]:
@@ -154,7 +181,7 @@ class CodexHookTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         output = json.loads(result.stdout)["hookSpecificOutput"]
         self.assertEqual(output["permissionDecision"], "allow")
-        self.assertIn("AIDR_TRACE_TOKEN=", output["updatedInput"]["command"])
+        self.assertIn("ARS_TRACE_TOKEN=", output["updatedInput"]["command"])
         self.assertTrue(output["updatedInput"]["command"].endswith("; ping example.com"))
 
     def test_allows_unmatched_program(self) -> None:
@@ -349,10 +376,10 @@ class CodexHookTests(unittest.TestCase):
             telemetry = json.loads((directory / "events.jsonl").read_text().splitlines()[-1])
             self.assertEqual(detection["schema_version"], "1.2.0")
             self.assertEqual(
-                detection["extensions"]["com.aidr.policy"]["ir_version"], "1.4.0"
+                detection["extensions"]["com.agent_runtime_security.policy"]["ir_version"], "1.4.0"
             )
             self.assertEqual(
-                detection["extensions"]["com.aidr.policy"]["bundle_sha256"],
+                detection["extensions"]["com.agent_runtime_security.policy"]["bundle_sha256"],
                 telemetry["policy"]["sha256"],
             )
             self.assertEqual(detection["event_type"], "detection")
@@ -360,7 +387,7 @@ class CodexHookTests(unittest.TestCase):
             self.assertEqual(detection["response"]["enforcement_point"], "pre_execution")
             self.assertEqual(detection["detection"]["severity"], "high")
             self.assertFalse(
-                detection["extensions"]["com.aidr.threat_intelligence"]["enabled"]
+                detection["extensions"]["com.agent_runtime_security.threat_intelligence"]["enabled"]
             )
             self.assertEqual(
                 detection["evidence"][0]["attributes"]["network.destinations"],
@@ -405,7 +432,7 @@ class CodexHookTests(unittest.TestCase):
             )
             self.assertEqual(detection["evidence_chains"][0]["steps"][0]["sequence"], 1)
             self.assertEqual(detection["data_handling"]["command_content"], "omitted")
-            self.assertNotIn("AIDR_TRACE_TOKEN", detections[0])
+            self.assertNotIn("ARS_TRACE_TOKEN", detections[0])
             self.assertNotIn("ping evil.com", detections[0])
 
     def test_remote_threat_provider_failure_can_fail_closed(self) -> None:
@@ -416,9 +443,10 @@ class CodexHookTests(unittest.TestCase):
             policy["threat_intelligence"] = {
                 "enabled": True,
                 "provider": "virustotal",
-                "api_key_env": "AIDR_TEST_MISSING_KEY",
+                "api_key_env": "ARS_TEST_MISSING_KEY",
                 "failure_mode": "closed",
             }
+            add_test_threat_rule(policy)
             rules.write_text(json.dumps(policy), encoding="utf-8")
             result = invoke_event(event("curl https://evil.com"), rules)
             output = json.loads(result.stdout)["hookSpecificOutput"]
@@ -436,9 +464,10 @@ class CodexHookTests(unittest.TestCase):
             policy["threat_intelligence"] = {
                 "enabled": True,
                 "provider": "virustotal",
-                "api_key_env": "AIDR_TEST_MISSING_KEY",
+                "api_key_env": "ARS_TEST_MISSING_KEY",
                 "failure_mode": "open",
             }
+            add_test_threat_rule(policy)
             rules.write_text(json.dumps(policy), encoding="utf-8")
             result = invoke_event(event("curl https://evil.com"), rules)
             output = json.loads(result.stdout)["hookSpecificOutput"]
@@ -470,7 +499,7 @@ class CodexHookTests(unittest.TestCase):
                 (directory / "detections.jsonl").read_text().splitlines()[-1]
             )
             self.assertTrue(
-                detection["extensions"]["com.aidr.policy"]["used_last_known_good"]
+                detection["extensions"]["com.agent_runtime_security.policy"]["used_last_known_good"]
             )
 
     def test_allowed_action_does_not_emit_detection(self) -> None:
@@ -542,24 +571,24 @@ class CodexHookTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             environments, rewritten = trace_environment_from_output(result.stdout)
 
-            self.assertIn("export AIDR_TRACE_ID=", rewritten)
+            self.assertIn("export ARS_TRACE_ID=", rewritten)
             self.assertEqual(environments["parent"], environments["child"])
-            self.assertEqual(environments["parent"]["AIDR_ACTOR_ID"], "root")
-            self.assertEqual(environments["parent"]["AIDR_CODEX_SESSION_ID"], "test-session")
-            self.assertEqual(environments["parent"]["AIDR_TOOL_CALL_ID"], "test-tool-use")
-            self.assertTrue(environments["parent"]["AIDR_ACTION_ID"].startswith("act_"))
+            self.assertEqual(environments["parent"]["ARS_ACTOR_ID"], "root")
+            self.assertEqual(environments["parent"]["ARS_CODEX_SESSION_ID"], "test-session")
+            self.assertEqual(environments["parent"]["ARS_TOOL_CALL_ID"], "test-tool-use")
+            self.assertTrue(environments["parent"]["ARS_ACTION_ID"].startswith("act_"))
             self.assertTrue(
-                environments["parent"]["AIDR_REQUEST_FINGERPRINT"].startswith("req_")
+                environments["parent"]["ARS_REQUEST_FINGERPRINT"].startswith("req_")
             )
-            self.assertTrue(environments["parent"]["AIDR_TRACE_TOKEN"])
+            self.assertTrue(environments["parent"]["ARS_TRACE_TOKEN"])
 
             telemetry = json.loads((directory / "events.jsonl").read_text().splitlines()[-1])
-            self.assertEqual(telemetry["trace"]["trace_id"], environments["parent"]["AIDR_TRACE_ID"])
+            self.assertEqual(telemetry["trace"]["trace_id"], environments["parent"]["ARS_TRACE_ID"])
             self.assertEqual(
                 telemetry["action_correlation"]["action_id"],
-                environments["parent"]["AIDR_ACTION_ID"],
+                environments["parent"]["ARS_ACTION_ID"],
             )
-            self.assertNotIn(environments["parent"]["AIDR_TRACE_TOKEN"], json.dumps(telemetry))
+            self.assertNotIn(environments["parent"]["ARS_TRACE_TOKEN"], json.dumps(telemetry))
 
     def test_subagent_gets_actor_token_under_same_session_trace(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -590,10 +619,10 @@ class CodexHookTests(unittest.TestCase):
 
             root_environment = root_environments["parent"]
             child_environment = child_environments["parent"]
-            self.assertEqual(root_environment["AIDR_TRACE_ID"], child_environment["AIDR_TRACE_ID"])
-            self.assertEqual(root_environment["AIDR_TRACE_TOKEN"], child_environment["AIDR_TRACE_TOKEN"])
-            self.assertNotEqual(root_environment["AIDR_ACTOR_TOKEN"], child_environment["AIDR_ACTOR_TOKEN"])
-            self.assertEqual(child_environment["AIDR_ACTOR_ID"], "agent-child-1")
+            self.assertEqual(root_environment["ARS_TRACE_ID"], child_environment["ARS_TRACE_ID"])
+            self.assertEqual(root_environment["ARS_TRACE_TOKEN"], child_environment["ARS_TRACE_TOKEN"])
+            self.assertNotEqual(root_environment["ARS_ACTOR_TOKEN"], child_environment["ARS_ACTOR_TOKEN"])
+            self.assertEqual(child_environment["ARS_ACTOR_ID"], "agent-child-1")
 
     def test_trace_is_stable_within_session_and_unique_between_sessions(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -611,12 +640,12 @@ class CodexHookTests(unittest.TestCase):
             other_environment, _ = trace_environment_from_output(other.stdout)
 
             self.assertEqual(
-                first_environment["parent"]["AIDR_TRACE_TOKEN"],
-                second_environment["parent"]["AIDR_TRACE_TOKEN"],
+                first_environment["parent"]["ARS_TRACE_TOKEN"],
+                second_environment["parent"]["ARS_TRACE_TOKEN"],
             )
             self.assertNotEqual(
-                first_environment["parent"]["AIDR_TRACE_TOKEN"],
-                other_environment["parent"]["AIDR_TRACE_TOKEN"],
+                first_environment["parent"]["ARS_TRACE_TOKEN"],
+                other_environment["parent"]["ARS_TRACE_TOKEN"],
             )
 
     def test_denied_command_does_not_receive_trace_environment(self) -> None:
@@ -634,7 +663,7 @@ class CodexHookTests(unittest.TestCase):
             pre_result = invoke_event(event(original), rules)
             pre_output = json.loads(pre_result.stdout)["hookSpecificOutput"]
             rewritten = pre_output["updatedInput"]["command"]
-            trace_token = rewritten.split("AIDR_TRACE_TOKEN=", 1)[1].split(" ", 1)[0]
+            trace_token = rewritten.split("ARS_TRACE_TOKEN=", 1)[1].split(" ", 1)[0]
 
             post_event = event(rewritten)
             post_event["hook_event_name"] = "PostToolUse"

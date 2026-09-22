@@ -1,20 +1,20 @@
-# AiDR engineering requirements document
+# Agent Runtime Security engineering requirements document
 
-Status: Draft for alignment  
-Owner: AiDR engineering  
-Last updated: September 21, 2026  
+Status: Draft for alignment
+Owner: Agent Runtime Security engineering
+Last updated: September 21, 2026
 Companion: [Product requirements document](product-requirements.md)
 
 This is the Engineering Requirements Document (ERD), not an entity-relationship diagram. It converts the product outcomes into testable system requirements and defines the engineering and security methodology used to validate them.
 
 ## 1. System objective
 
-For every action exposed at a supported preventive hook, AiDR must produce a local, deterministic decision over the exact proposed action and available context before the harness dispatches that action. It must preserve enough correlation to explain a policy match while preventing raw observation streams, secrets, and correlation credentials from becoming product telemetry.
+For every action exposed at a supported preventive hook, Agent Runtime Security must produce a local, deterministic decision over the exact proposed action and available context before the harness dispatches that action. It must preserve enough correlation to explain a policy match while preventing raw observation streams, secrets, and correlation credentials from becoming product telemetry.
 
 ## 2. System boundary and trust model
 
 ```text
-Untrusted or partially trusted                 AiDR trusted computing path
+Untrusted or partially trusted                 Agent Runtime Security trusted computing path
 
 model/server response
         |
@@ -37,7 +37,7 @@ agent harness ---- lifecycle event ----> harness adapter
 
 ### 2.1 Trusted for the prototype
 
-- The installed AiDR adapter and policy compiler source.
+- The installed Agent Runtime Security adapter and policy compiler source.
 - The generated runtime policy after successful validation and atomic activation.
 - The harness correctly invoking its documented hook and honoring the response.
 - Local files and state protected by the current user account permissions.
@@ -51,7 +51,7 @@ agent harness ---- lifecycle event ----> harness adapter
 
 ### 2.3 Out-of-boundary threats
 
-The application layer alone cannot guarantee control when the hook is disabled, skipped, or compromised; when a tool path does not emit a preventive event; when a privileged local actor changes AiDR; or when side effects occur outside the evaluated input. These cases must be reported as uncovered and addressed by deployment controls or endpoint defense in depth.
+The application layer alone cannot guarantee control when the hook is disabled, skipped, or compromised; when a tool path does not emit a preventive event; when a privileged local actor changes Agent Runtime Security; or when side effects occur outside the evaluated input. These cases must be reported as uncovered and addressed by deployment controls or endpoint defense in depth.
 
 ## 3. Reference architecture
 
@@ -166,7 +166,7 @@ Requirements use `MUST`, `SHOULD`, and `MAY` in their normative sense.
 | ID | Requirement |
 |---|---|
 | ER-S-001 | Threat modeling MUST cover prompt injection, malicious tool output, policy bypass, parser differentials, command indirection, environment tampering, hook removal, TOCTOU, resource exhaustion, and sensitive-data leakage |
-| ER-S-002 | AiDR MUST evaluate the exact input the harness will dispatch. A post-decision mutation MUST cause re-evaluation or rejection |
+| ER-S-002 | Agent Runtime Security MUST evaluate the exact input the harness will dispatch. A post-decision mutation MUST cause re-evaluation or rejection |
 | ER-S-003 | Policy and adapter code MUST never execute untrusted content for parsing, expansion, validation, or testing |
 | ER-S-004 | Rule bundles SHOULD be integrity protected for beta and MUST be authenticated for managed production deployment |
 | ER-S-005 | Local state MUST resist symlink/path substitution, partial writes, permissive file modes, and cross-user access on supported platforms |
@@ -206,7 +206,7 @@ Entity IDs must be stable within a detection and globally unique where the schem
 
 ## 8. Engineering methodology
 
-AiDR development follows a control-first, evidence-driven loop.
+Agent Runtime Security development follows a control-first, evidence-driven loop.
 
 ### Step 1: Inventory the control surface
 
@@ -271,12 +271,12 @@ Generate a conformance report from a tagged revision. It includes requirement re
 | Area | Current state | Gap to alpha/beta |
 |---|---|---|
 | Codex pre-execution blocking | Implemented and safely smoke-tested | Versioned adapter manifest and broader live compatibility corpus |
-| Rule compiler | Bounded AiDRQL predicates with 14 operators, runtime IR schema/version validation, atomic activation, canonical hashing, and LKG recovery | Complexity-safe regex strategy, authenticated bundles, richer Boolean model if justified |
+| Rule compiler | Bounded ARSQuery predicates with 14 operators, runtime IR schema/version validation, atomic activation, canonical hashing, and LKG recovery | Complexity-safe regex strategy, authenticated bundles, richer Boolean model if justified |
 | Correlation | Session, actor, tool-call, action, request, and ordinary descendant propagation | Trusted process sensor, tamper detections, platform coverage |
 | Detection model | Schema v1.2 detection with typed target entities and evidence chains | Target canonicalization, secret scanning, and correlation-window implementation |
 | Threat intelligence | Optional policy-gated VirusTotal domain/IP lookup, bounded responses, per-event memoization, configurable thresholds and open/closed failure behavior | Quota governance, provider abstraction, latency SLO, privacy review, and numeric-count policy fields |
 | Telemetry boundary | Detection-only product contract; diagnostic raw-event file remains in prototype | Disable raw diagnostics by default and enforce retention/size bounds |
-| Test evidence | 108 automated tests, isolated smoke test, and bounded 1,000-rule benchmark | Structured conformance report, broader adversarial corpora, adapter/provider latency distributions, live matrix |
+| Test evidence | 112 automated tests, isolated smoke test, and bounded 1,000-rule plus matcher benchmarks | Structured conformance report, broader adversarial corpora, adapter/provider latency distributions, live matrix |
 | Deployment | Reversible project/user Codex installer, backups, health/status commands, and explicit project-hook trust review | Packaged signed adapter, managed deployment, compatibility matrix, and release rollback |
 | Shell interpretation | Bounded non-executing subset AST with nested substitution, redirection, wrapper, dynamic-value, known indirect-dispatch, typed-target, provenance, and malformed-input tests | Mature grammar, differential corpus, additional dispatchers and embedded interpreters, and cross-shell compatibility before production claim |
 

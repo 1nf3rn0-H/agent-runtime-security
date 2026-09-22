@@ -1,7 +1,7 @@
 # ADR-0010: Compile human-readable policies to a vendor-neutral IR
 
-Status: Accepted for prototype  
-Date: 2026-09-18  
+Status: Accepted for prototype
+Date: 2026-09-18
 Supersedes: ADR-0003 as the authoring direction
 
 ## Context
@@ -18,7 +18,7 @@ Parsing a rich authoring language inside the synchronous hook would add latency,
 
 ## Decision
 
-Introduce a compiler boundary. The first frontend is dependency-free `aidrql/1`, a line-oriented SQL/KQL-style language. It parses into a typed source model, validates field/operator compatibility, and lowers to the existing deterministic JSON runtime IR.
+Introduce a compiler boundary. The first frontend is dependency-free `arsquery/1`, a line-oriented SQL/KQL-style language. It parses into a typed source model, validates field/operator compatibility, and lowers to the existing deterministic JSON runtime IR.
 
 The generated JSON is consumed by all harness adapters and is not an authoring interface. Runtime configuration remains separate from detection source. Future Sigma-YAML and query-language frontends must target the same typed model or a compatible successor.
 

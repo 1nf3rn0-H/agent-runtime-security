@@ -1,7 +1,7 @@
 # ADR-0013: Replace flat command splitting with a bounded non-executing parser
 
-Status: Accepted for prototype  
-Date: 2026-09-21  
+Status: Accepted for prototype
+Date: 2026-09-21
 Supersedes: the `shlex` implementation described in the command-interpretation section of the engineering direction
 
 ## Context

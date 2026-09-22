@@ -1,6 +1,6 @@
 # ADR-0003: Use dependency-free JSON rules for the prototype
 
-Status: Accepted  
+Status: Accepted
 Date: August 18, 2026
 
 ## Context

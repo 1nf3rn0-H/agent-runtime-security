@@ -1,11 +1,11 @@
 # ADR-0008: Emit a detection event for each denying rule
 
-Status: Accepted for prototype  
+Status: Accepted for prototype
 Date: 2026-09-18
 
 ## Context
 
-AiDR has a versioned detection-event schema, but the runtime previously wrote only internal hook observations. The product boundary requires durable output only when policy detects activity, without copying complete tool inputs or trace tokens.
+Agent Runtime Security has a versioned detection-event schema, but the runtime previously wrote only internal hook observations. The product boundary requires durable output only when policy detects activity, without copying complete tool inputs or trace tokens.
 
 Multiple denying rules may independently explain the same proposed action. A detection event has one primary rule identity.
 

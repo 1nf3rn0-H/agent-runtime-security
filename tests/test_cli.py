@@ -12,11 +12,11 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
-AIDR = ROOT / ".aidr"
-if str(AIDR) not in sys.path:
-    sys.path.insert(0, str(AIDR))
+ARS = ROOT / ".agent-runtime-security"
+if str(ARS) not in sys.path:
+    sys.path.insert(0, str(ARS))
 
-spec = importlib.util.spec_from_file_location("aidr_cli_tests", AIDR / "cli.py")
+spec = importlib.util.spec_from_file_location("agent_runtime_security_cli_tests", ARS / "cli.py")
 cli = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 sys.modules[spec.name] = cli
@@ -29,7 +29,7 @@ class CliTests(unittest.TestCase):
         with redirect_stdout(output):
             result = cli.main(["policy", "check"])
         self.assertEqual(result, 0)
-        self.assertIn("current: 3 rules", output.getvalue())
+        self.assertIn("current: 2 rules", output.getvalue())
 
     def test_install_merges_and_uninstall_preserves_unrelated_hooks(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -71,8 +71,8 @@ class CliTests(unittest.TestCase):
                 for handler in group["hooks"]
             ]
             self.assertTrue(any(handler["command"] == "python3 unrelated.py" for handler in pre_handlers))
-            self.assertTrue(any(cli._is_aidr_handler(handler) for handler in pre_handlers))
-            self.assertTrue(list(config.parent.glob("hooks.json.aidr-backup-*")))
+            self.assertTrue(any(cli._is_agent_runtime_security_handler(handler) for handler in pre_handlers))
+            self.assertTrue(list(config.parent.glob("hooks.json.agent-runtime-security-backup-*")))
             self.assertEqual(stat.S_IMODE(config.stat().st_mode), 0o600)
 
             with redirect_stdout(io.StringIO()):
@@ -87,14 +87,14 @@ class CliTests(unittest.TestCase):
             )
             self.assertFalse(
                 any(
-                    cli._is_aidr_handler(handler)
+                    cli._is_agent_runtime_security_handler(handler)
                     for groups in uninstalled["hooks"].values()
                     for group in groups
                     for handler in group.get("hooks", [])
                 )
             )
             self.assertGreaterEqual(
-                len(list(config.parent.glob("hooks.json.aidr-backup-*"))),
+                len(list(config.parent.glob("hooks.json.agent-runtime-security-backup-*"))),
                 2,
             )
 
@@ -106,12 +106,12 @@ class CliTests(unittest.TestCase):
                 handler
                 for group in second["hooks"][event]
                 for handler in group.get("hooks", [])
-                if cli._is_aidr_handler(handler)
+                if cli._is_agent_runtime_security_handler(handler)
             ]
             self.assertEqual(len(handlers), 1)
 
     def test_simulation_is_non_executing_and_network_free(self) -> None:
-        marker = ROOT / ".aidr" / "CLI_SIMULATION_WAS_EXECUTED"
+        marker = ROOT / ".agent-runtime-security" / "CLI_SIMULATION_WAS_EXECUTED"
         if marker.exists():
             marker.unlink()
         output = io.StringIO()

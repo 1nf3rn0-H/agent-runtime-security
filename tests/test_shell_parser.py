@@ -8,11 +8,11 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
-AIDR = ROOT / ".aidr"
-if str(AIDR) not in sys.path:
-    sys.path.insert(0, str(AIDR))
+ARS = ROOT / ".agent-runtime-security"
+if str(ARS) not in sys.path:
+    sys.path.insert(0, str(ARS))
 
-spec = importlib.util.spec_from_file_location("aidr_codex_hook_parser_tests", AIDR / "codex_hook.py")
+spec = importlib.util.spec_from_file_location("agent_runtime_security_codex_hook_parser_tests", ARS / "codex_hook.py")
 hook = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 sys.modules[spec.name] = hook

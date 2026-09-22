@@ -1,11 +1,11 @@
-# AiDR engineering direction
+# Agent Runtime Security engineering direction
 
-Status: Living document  
+Status: Living document
 Last updated: September 22, 2026
 
 ## Product statement
 
-AiDR is application-level runtime security for AI coding agents. It observes agent actions, enriches them with user and process context, evaluates lightweight detection policies, and prevents disallowed actions before they reach the underlying tool or operating system.
+Agent Runtime Security is application-level runtime security for AI coding agents. It observes agent actions, enriches them with user and process context, evaluates lightweight detection policies, and prevents disallowed actions before they reach the underlying tool or operating system.
 
 The first supported harness is Codex. The current alpha intercepts every supported local tool event, assigns a session trace, registers subagent actors, normalizes tool actions, parses proposed shell commands, evaluates local rules, injects trace context into allowed commands, emits a synchronous allow-or-deny decision, records diagnostic JSONL observations, and emits schema-versioned detection events for denials. A local CLI installs and removes the adapter, diagnoses health, compiles policy, safely simulates actions, and exposes status and detections.
 
@@ -29,7 +29,7 @@ The first supported harness is Codex. The current alpha intercepts every support
 
 ## Threat model
 
-AiDR currently assumes that an AI agent may propose or invoke an unsafe action because of prompt injection, compromised context, malicious tool output, a model error, or an overly broad user instruction.
+Agent Runtime Security currently assumes that an AI agent may propose or invoke an unsafe action because of prompt injection, compromised context, malicious tool output, a model error, or an overly broad user instruction.
 
 Actions of interest include:
 
@@ -77,7 +77,7 @@ Every supported local tool call uses the same pre-execution evaluation contract:
 
 Codex currently exposes these lifecycle events:
 
-| Hook | AiDR role | Preventive capability |
+| Hook | Agent Runtime Security role | Preventive capability |
 |---|---|---|
 | `UserPromptSubmit` | Inspect prompts and secret leakage | Can reject a prompt before submission |
 | `SessionStart` | Establish session context and load policy | Context and limited continuation control |
@@ -118,7 +118,7 @@ Decision: use vendor hooks for the first inline control plane while designing ad
 | Rego/OPA | Mature policy ecosystem | Heavier runtime and policy complexity | Evaluate for enterprise deployment |
 | Sigma-like domain language | Familiar to detection engineers | Requires a compiler and well-defined action taxonomy | Add as a compiler frontend |
 
-Decision: author rules in `aidrql/2` and compile ahead of time to deterministic JSON IR. The common authoring surface uses `IS`, `CONTAINS`, and `MATCHES`, while the compiler chooses scalar/list runtime operations. The current IR is a bounded conjunction of predicates over tool, action, session, agent, process, and direct tool-input fields. Keep the compiler frontend separate so Sigma-YAML, KQL-subset, or SQL-subset inputs can target the same IR later. See [ADR-0010](decisions/0010-compile-human-readable-policies-to-ir.md), [ADR-0011](decisions/0011-bounded-predicate-list-ir.md), [ADR-0019](decisions/0019-simplify-aidrql-matching.md), and the [policy compiler documentation](policy-compiler.md).
+Decision: author rules in `arsquery/2` and compile ahead of time to deterministic JSON IR. The common authoring surface uses `IS`, `CONTAINS`, and `MATCHES`, while the compiler chooses scalar/list runtime operations. The current IR is a bounded conjunction of predicates over tool, action, session, agent, process, and direct tool-input fields. Keep the compiler frontend separate so Sigma-YAML, KQL-subset, or SQL-subset inputs can target the same IR later. See [ADR-0010](decisions/0010-compile-human-readable-policies-to-ir.md), [ADR-0011](decisions/0011-bounded-predicate-list-ir.md), [ADR-0019](decisions/0019-simplify-arsquery-matching.md), and the [policy compiler documentation](policy-compiler.md).
 
 ### Command interpretation
 
@@ -165,7 +165,7 @@ The alpha now has a reversible local installer for project and user scopes. It m
 | Command cannot be parsed | Deny | Keep fail-closed; record parser reason |
 | Regex-selected remote threat lookup fails | Allow in optional `open` mode or deny in `closed` mode | Tune by policy risk, provider quota, and latency SLO |
 | Telemetry append fails | Deny because evaluation cannot complete cleanly | Separate evidence durability from policy availability before production |
-| Hook times out or is skipped | Controlled by the harness, not AiDR | Add health checks and an OS-level backstop |
+| Hook times out or is skipped | Controlled by the harness, not Agent Runtime Security | Add health checks and an OS-level backstop |
 | Remote collector unavailable | Not used inline | Queue locally without affecting decisions |
 
 The current fail-closed choice is recorded in [ADR-0004](decisions/0004-fail-closed-policy-errors.md).
@@ -220,6 +220,6 @@ The current fail-closed choice is recorded in [ADR-0004](decisions/0004-fail-clo
 - The hook feature was reconfirmed as stable and enabled on `codex-cli 0.153.4` on September 10, 2026.
 - An end-to-end Codex test denied a proposed `ping evil.com` action before a harmless stand-in executable was reached.
 - The recorded inline decision latency for that test was 479 microseconds.
-- One hundred eight automated tests now pass, including reversible/idempotent installation, non-executing simulation, policy compilation and recovery, typed targets, evidence graphs, semantic uncertainty, indirect dispatch, execution-chain propagation, token isolation, and isolated optional-enrichment behavior.
-- The September 22 development run measured a 1,000-rule base evaluation at 0.764 ms p95 and a single-rule regex-gated target evaluation at 0.029 ms p95 over 200 samples; these are separate workloads and not comparative throughput claims. Provider network time is excluded and is captured as per-event threat-intelligence latency when the optional add-on is enabled.
+- One hundred twelve automated tests now pass, including simplified matching syntax, scalar/list lowering, case behavior, reversible/idempotent installation, non-executing simulation, policy recovery, typed targets, evidence graphs, indirect dispatch, execution-chain propagation, token isolation, and isolated optional-enrichment behavior.
+- The September 22 ARSQuery/2 development run measured a 1,000-rule base evaluation at 1.194 ms p95 and a single-rule semantic regex evaluation at 0.074 ms p95 over 200 samples. Single-rule exact, literal-contains, and scalar-regex workloads each measured below 0.05 ms p95. These are separate microbenchmarks, not comparative throughput claims; provider network time is excluded.
 - A live `codex-cli 0.153.4` subagent test correlated `SessionStart`, `SubagentStart`, `PreToolUse`, the subagent process and child process, and `PostToolUse` under one trace. The tested build supplied `agent_id` on both tool hooks, and persisted telemetry contained no raw correlation token.

@@ -47,7 +47,7 @@ from threat_intel import (
 
 
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_RULES = ROOT / ".aidr" / "rules.json"
+DEFAULT_RULES = ROOT / ".agent-runtime-security" / "rules.json"
 SHELLS = {"sh", "bash", "zsh", "dash", "ksh"}
 WRAPPERS = {"command", "builtin", "exec", "nohup", "time"}
 UNSUPPORTED_INDIRECT_EXECUTORS = {"parallel"}
@@ -1010,7 +1010,7 @@ def evaluate(
             "semantic_targets": semantic_targets,
             "tool_threat": tool_threat.as_dict(),
             "threat_intelligence": disabled_metadata(),
-            "reason": "Observed by AiDR.",
+            "reason": "Observed by Agent Runtime Security.",
         }
 
     if threat_enricher is not None:
@@ -1066,7 +1066,7 @@ def evaluate(
                 {
                     "id": str(rule.get("id", "unnamed")),
                     "action": action,
-                    "message": str(rule.get("message", "Matched AiDR policy.")),
+                    "message": str(rule.get("message", "Matched Agent Runtime Security policy.")),
                     "title": str(rule.get("title", rule.get("id", "unnamed"))),
                     "description": str(rule.get("description", "")),
                     "severity": str(rule.get("severity", "medium")),
@@ -1102,7 +1102,7 @@ def evaluate(
             if denying
             else allowing[0]["message"]
             if allowing
-            else "Allowed by AiDR policy."
+            else "Allowed by Agent Runtime Security policy."
         ),
     }
 
@@ -1152,7 +1152,7 @@ def _allow_with_command(command: str, original_input: Any) -> dict[str, Any]:
 
 
 def _trace_state_dir(policy: dict[str, Any]) -> Path:
-    configured = policy.get("trace", {}).get("state_dir", ".aidr/state")
+    configured = policy.get("trace", {}).get("state_dir", ".agent-runtime-security/state")
     path = Path(configured)
     return path if path.is_absolute() else ROOT / path
 
@@ -1198,21 +1198,21 @@ def inject_trace_environment(
 def sanitize_injected_command(command: str, context: TraceContext) -> str:
     """Recover the original command and guarantee correlation tokens are redacted."""
     sanitized = command
-    if command.startswith("export AIDR_TRACE_ID="):
+    if command.startswith("export ARS_TRACE_ID="):
         prefix, separator, original = command.partition("; ")
         expected_names = (
-            "AIDR_TRACE_ID=",
-            "AIDR_TRACE_TOKEN=",
-            "AIDR_ACTOR_ID=",
-            "AIDR_ACTOR_TOKEN=",
-            "AIDR_CODEX_SESSION_ID=",
-            "AIDR_ACTION_ID=",
-            "AIDR_REQUEST_FINGERPRINT=",
+            "ARS_TRACE_ID=",
+            "ARS_TRACE_TOKEN=",
+            "ARS_ACTOR_ID=",
+            "ARS_ACTOR_TOKEN=",
+            "ARS_CODEX_SESSION_ID=",
+            "ARS_ACTION_ID=",
+            "ARS_REQUEST_FINGERPRINT=",
         )
         if separator and all(name in prefix for name in expected_names):
             sanitized = original
-    return sanitized.replace(context.trace_token, "[AIDR_TRACE_TOKEN]").replace(
-        context.actor_token, "[AIDR_ACTOR_TOKEN]"
+    return sanitized.replace(context.trace_token, "[ARS_TRACE_TOKEN]").replace(
+        context.actor_token, "[ARS_ACTOR_TOKEN]"
     )
 
 
@@ -1253,7 +1253,7 @@ def run(event: dict[str, Any], rules_path: Path) -> tuple[dict[str, Any] | None,
         output = _permission_deny_output(result["reason"])
 
     telemetry_config = policy.get("telemetry", {})
-    telemetry_path = Path(telemetry_config.get("path", ".aidr/events.jsonl"))
+    telemetry_path = Path(telemetry_config.get("path", ".agent-runtime-security/events.jsonl"))
     if not telemetry_path.is_absolute():
         telemetry_path = ROOT / telemetry_path
     include_raw = bool(telemetry_config.get("include_raw_command", True))
@@ -1321,7 +1321,7 @@ def run(event: dict[str, Any], rules_path: Path) -> tuple[dict[str, Any] | None,
         and normalized_action is not None
         and action_correlation is not None
     ):
-        detection_path = Path(detection_config.get("path", ".aidr/detections.jsonl"))
+        detection_path = Path(detection_config.get("path", ".agent-runtime-security/detections.jsonl"))
         if not detection_path.is_absolute():
             detection_path = ROOT / detection_path
         for matched_rule in result["matched_rules"]:
@@ -1355,7 +1355,7 @@ def main() -> int:
         event = json.load(sys.stdin)
         output, record = run(event, args.rules)
     except Exception as exc:  # A PreToolUse policy failure must not become an execution bypass.
-        reason = f"AiDR hook evaluation failed: {exc}"
+        reason = f"Agent Runtime Security hook evaluation failed: {exc}"
         if event.get("hook_event_name") == "PreToolUse":
             print(json.dumps(_deny_output(f"{reason}; failed closed"), separators=(",", ":")))
         elif event.get("hook_event_name") == "PermissionRequest":
